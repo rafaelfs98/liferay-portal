@@ -97,7 +97,7 @@ const yupSchema = {
 		runId: yup.number(),
 	}),
 	factorCategory: yup.object({
-		id: yup.string(),
+		id: yup.string().required(),
 		name: yup.string().required(),
 	}),
 	factorOption: yup.object({

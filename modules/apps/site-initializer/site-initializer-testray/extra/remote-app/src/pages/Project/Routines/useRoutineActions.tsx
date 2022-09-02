@@ -27,7 +27,7 @@ const useRoutineActions = ({isHeaderActions}: ActionsHookParameter = {}) => {
 	const {form} = useFormActions();
 	const navigate = useNavigate();
 	const {removeItemFromList} = useMutate();
-	const {onOpenModal} = useModalContext();
+	const {dispatch, onOpenModal} = useModalContext();
 
 	const actionsRef = useRef([
 		{
@@ -45,8 +45,14 @@ const useRoutineActions = ({isHeaderActions}: ActionsHookParameter = {}) => {
 		{
 			action: (routine) =>
 				onOpenModal({
-					body: <EnvironmentFactorsModal routineId={routine.id} />,
+					body: (
+						<EnvironmentFactorsModal
+							dispatch={dispatch}
+							routineId={routine.id}
+						/>
+					),
 					size: 'full-screen',
+
 					title: i18n.translate('select-default-environment-factors'),
 				}),
 			icon: 'display',

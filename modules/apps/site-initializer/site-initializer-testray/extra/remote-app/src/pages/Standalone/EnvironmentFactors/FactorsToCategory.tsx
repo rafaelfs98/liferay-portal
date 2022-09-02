@@ -27,24 +27,23 @@ type FactorCategoryForm = typeof yupSchema.factorCategory.__outputType;
 type EnvironmentFactorsModalProps = {
 	lastStep: Boolean;
 	routineId: number;
+	setState: any;
 };
-const onMapAvailable = ({id, name}: FactorCategoryForm) => ({
-	label: name,
-	value: id,
+const onMapAvailable = (Factor: FactorCategoryForm) => ({
+	label: Factor.name,
+	value: String(Factor?.id),
 });
-const onMapSelected = ({id, name}: FactorCategoryForm) => ({
-	label: name,
-	value: id,
-});
+
 const FactorsToCategory: React.FC<EnvironmentFactorsModalProps> = ({
 	lastStep,
 	routineId,
+	setState,
 }) => {
-	const {data: unassigned, isValidating} = useFetch<
+	const {data: factorCategoryResponse, isValidating} = useFetch<
 		APIResponse<FactorCategoryForm>
 	>(!lastStep ? `/factorcategories` : null);
 
-	const {data: current} = useFetch<APIResponse<TestrayFactor>>(
+	const {data: factorResponse} = useFetch<APIResponse<TestrayFactor>>(
 		!isValidating && !lastStep
 			? `${testrayFactorRest.resource}&filter=${searchUtil.eq(
 					'routineId',
@@ -54,27 +53,34 @@ const FactorsToCategory: React.FC<EnvironmentFactorsModalProps> = ({
 		(response) => testrayFactorRest.transformDataFromList(response)
 	);
 
-	const getComponentsDualBox = useCallback(() => {
-		const currentItems =
-			current?.items.map((item) => item.factorCategory) || [];
-		const unassignedItems = unassigned?.items || [];
+	const getCategoryDualBox = useCallback(() => {
+		const selectedItems =
+			factorResponse?.items.map(({factorCategory}) => factorCategory) ||
+			[];
+
+		const availableItems =
+			factorCategoryResponse?.items.filter(
+				(factorCategory) =>
+					!selectedItems.find(
+						(item) => Number(item?.id) === Number(factorCategory.id)
+					)
+			) || [];
 
 		return [
-			unassignedItems.map(onMapAvailable),
-			currentItems.map(onMapSelected as any),
+			availableItems.map(onMapAvailable),
+			selectedItems.map(onMapAvailable as any),
 		];
-	}, [unassigned, current]);
+	}, [factorCategoryResponse, factorResponse]);
 
-	const componentsDualBox = getComponentsDualBox();
+	const categoryDualBox = getCategoryDualBox();
 
 	return (
-		<>
-			<DualListBox
-				boxes={componentsDualBox}
-				leftLabel={i18n.translate('Available')}
-				rightLabel={i18n.translate('Selected')}
-			/>
-		</>
+		<DualListBox
+			boxes={categoryDualBox}
+			leftLabel={i18n.translate('Available')}
+			rightLabel={i18n.translate('Selected')}
+			setValue={setState}
+		/>
 	);
 };
 

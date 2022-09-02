@@ -15,17 +15,22 @@
 import {useState} from 'react';
 
 import Form from '../../../components/Form';
+import {Boxes} from '../../../components/Form/DualListBox';
 import i18n from '../../../i18n';
 import FactorsToCategory from './FactorsToCategory';
 import FactorsToOptions from './FactorsToOptions';
 
 type EnvironmentFactorsModalProps = {
+	dispatch: React.Dispatch<any>;
 	routineId: number;
 };
-
+export type State = Boxes<[]>;
 const EnvironmentFactorsModal: React.FC<EnvironmentFactorsModalProps> = ({
+	dispatch,
 	routineId,
 }) => {
+	const [state, setState] = useState<State>([]);
+
 	const [step, setStep] = useState(0);
 
 	const _onSubmit = () => {
@@ -34,12 +39,19 @@ const EnvironmentFactorsModal: React.FC<EnvironmentFactorsModalProps> = ({
 		}
 		setStep(0);
 	};
+
+	// dispatch({type: 0});
+
 	const lastStep = step === 1;
 
 	return (
 		<>
 			{step === 0 && (
-				<FactorsToCategory lastStep={lastStep} routineId={routineId} />
+				<FactorsToCategory
+					lastStep={lastStep}
+					routineId={routineId}
+					setState={setState}
+				/>
 			)}
 
 			{step === 1 && (
@@ -49,7 +61,7 @@ const EnvironmentFactorsModal: React.FC<EnvironmentFactorsModalProps> = ({
 			<Form.Footer
 				isModal
 				onClose={() => {
-					lastStep ? _onSubmit() : alert;
+					lastStep ? _onSubmit() : dispatch({type: 0});
 				}}
 				onSubmit={() => _onSubmit()}
 				primaryButtonTitle={i18n.translate(lastStep ? 'Save' : 'next')}
