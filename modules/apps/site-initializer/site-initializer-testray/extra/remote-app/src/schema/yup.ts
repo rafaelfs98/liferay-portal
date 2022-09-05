@@ -102,6 +102,7 @@ const yupSchema = {
 	}),
 	factorOption: yup.object({
 		factorCategoryId: yup.string().required(),
+		id: yup.string(),
 		name: yup.string().required(),
 	}),
 	option: yup.object({

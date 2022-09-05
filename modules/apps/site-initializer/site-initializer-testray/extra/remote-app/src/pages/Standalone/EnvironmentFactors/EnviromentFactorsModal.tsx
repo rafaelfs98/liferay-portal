@@ -12,57 +12,144 @@
  * details.
  */
 
-import {useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
+import {useFieldArray, useForm} from 'react-hook-form';
+import {useOutletContext} from 'react-router-dom';
 
 import Form from '../../../components/Form';
-import {Boxes} from '../../../components/Form/DualListBox';
+import DualListBox, {Boxes} from '../../../components/Form/DualListBox';
+import {useFetch} from '../../../hooks/useFetch';
+import useFormActions from '../../../hooks/useFormActions';
 import i18n from '../../../i18n';
-import FactorsToCategory from './FactorsToCategory';
+import yupSchema, {yupResolver} from '../../../schema/yup';
+import {APIResponse, TestrayFactor} from '../../../services/rest';
+import {testrayFactorRest} from '../../../services/rest/TestrayFactor';
+import {searchUtil} from '../../../util/search';
 import FactorsToOptions from './FactorsToOptions';
 
 type EnvironmentFactorsModalProps = {
 	dispatch: React.Dispatch<any>;
 	routineId: number;
 };
+type OutletContext = {
+	testrayFactorOptions?: FactorOptionForm;
+};
+
+type FactorCategoryForm = typeof yupSchema.factorCategory.__outputType;
+type FactorOptionForm = typeof yupSchema.factorOption.__outputType;
+
+const onMapAvailable = (factor: FactorCategoryForm) => ({
+	label: factor.name,
+	value: String(factor?.id),
+});
+
 export type State = Boxes<[]>;
 const EnvironmentFactorsModal: React.FC<EnvironmentFactorsModalProps> = ({
 	dispatch,
 	routineId,
 }) => {
-	const [state, setState] = useState<State>([]);
+	const {testrayFactorOptions}: OutletContext = useOutletContext();
+	const {
+		form: {onClose, onSubmit},
+	} = useFormActions();
+
+	const {
+		control,
+		formState: {errors},
+		handleSubmit,
+		register,
+		setValue,
+		watch,
+	} = useForm<FactorOptionForm>({
+		defaultValues: testrayFactorOptions,
+
+		resolver: yupResolver(yupSchema.factorOption),
+	});
+
+	const {append, fields, remove, update} = useFieldArray({
+		control,
+		name: 'categories',
+	});
+
+	const [state, setState] = useState<State>([[], []]);
 
 	const [step, setStep] = useState(0);
 
+	const lastStep = step === 1;
+
+	const [, selectedEnvironmentFactors] = state;
+
+	const {data: factorCategoryResponse} = useFetch<
+		APIResponse<FactorCategoryForm>
+	>(`/factorcategories`);
+
+	const {data: factorResponse} = useFetch<APIResponse<TestrayFactor>>(
+		`${testrayFactorRest.resource}&filter=${searchUtil.eq(
+			'routineId',
+			routineId
+		)}`,
+		(response) => testrayFactorRest.transformDataFromList(response)
+	);
+
+	const getCategoryDualBox = useCallback(() => {
+		const selectedItems =
+			factorResponse?.items.map(({factorCategory}) => factorCategory) ||
+			[];
+
+		const availableItems =
+			factorCategoryResponse?.items.filter(
+				(factorCategory) =>
+					!selectedItems.find(
+						(item) => Number(item?.id) === Number(factorCategory.id)
+					)
+			) || [];
+
+		setState([
+			availableItems.map(onMapAvailable) as any,
+			selectedItems.map(onMapAvailable as any),
+		]);
+	}, [factorCategoryResponse?.items, factorResponse?.items, setState]);
+
+	useEffect(() => {
+		getCategoryDualBox();
+	}, []);
+
 	const _onSubmit = () => {
 		if (step === 0) {
+			// onSubmit(categories, {
+			// 	create: (...params) => testrayFactorRest.create(...params),
+			// 	update: (...params) => testrayFactorRest.update(...params),
+			// })
+			// 	.then(onSave)
+			// 	.catch(onError);
+
 			return setStep(1);
 		}
 		setStep(0);
 	};
 
-	// dispatch({type: 0});
-
-	const lastStep = step === 1;
-
 	return (
 		<>
 			{step === 0 && (
-				<FactorsToCategory
-					lastStep={lastStep}
-					routineId={routineId}
-					setState={setState}
+				<DualListBox
+					boxes={state}
+					leftLabel={i18n.translate('Available')}
+					rightLabel={i18n.translate('Selected')}
+					setValue={setState}
 				/>
 			)}
 
 			{step === 1 && (
-				<FactorsToOptions lastStep={lastStep} routineId={routineId} />
+				<FactorsToOptions
+					lastStep={lastStep}
+					routineId={routineId}
+					selectedEnvironmentFactors={selectedEnvironmentFactors}
+				/>
 			)}
 
 			<Form.Footer
 				isModal
-				onClose={() => {
-					lastStep ? _onSubmit() : dispatch({type: 0});
-				}}
+				onClose={() => (lastStep ? _onSubmit() : dispatch({type: 0}))}
 				onSubmit={() => _onSubmit()}
 				primaryButtonTitle={i18n.translate(lastStep ? 'Save' : 'next')}
 				secondaryButtonTitle={i18n.translate(

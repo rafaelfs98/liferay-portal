@@ -267,8 +267,8 @@ export type TestrayRoutine = {
 };
 
 export type TestrayFactor = {
-	dateCreated: string;
-	dateModified: string;
+	dateCreated?: string;
+	dateModified?: string;
 	factorCategory?: TestrayFactorCategory;
 	factorOption?: TestrayFactorOptions;
 	id: number;

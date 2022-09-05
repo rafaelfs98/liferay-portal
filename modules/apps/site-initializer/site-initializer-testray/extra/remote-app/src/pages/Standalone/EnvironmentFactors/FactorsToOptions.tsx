@@ -12,60 +12,52 @@
  * details.
  */
 
-import {useEffect} from 'react';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {Control, UseFormRegister, useFieldArray} from 'react-hook-form';
 
 import Form from '../../../components/Form';
-import {useFetch} from '../../../hooks/useFetch';
-import {
-	APIResponse,
-	TestrayFactor,
-	getFactorOptionQuery,
-	testrayFactorRest,
-} from '../../../services/rest';
+import yupSchema from '../../../schema/yup';
+import {TestrayFactor, TestrayFactorOptions} from '../../../services/rest';
 import {testrayFactorCategoryRest} from '../../../services/rest/TestrayFactorCategory';
-import {searchUtil} from '../../../util/search';
+
+type FactorOptionForm = typeof yupSchema.factorOption.__outputType;
 
 type FactorsToOptionsProps = {
+	control: Control<FactorOptionForm>;
 	lastStep: Boolean;
+	register: UseFormRegister<FactorOptionForm>;
 	routineId: number;
+	selectedEnvironmentFactors: {label: string; value: number}[];
+	setOptionsItens: any;
 };
 
 const FactorsToOptions: React.FC<FactorsToOptionsProps> = ({
-	lastStep,
-	routineId,
+	control,
+	register,
+	selectedEnvironmentFactors,
 }) => {
 	const [factorOptionsList, setFactorOptionsList] = useState<
 		TestrayFactor[][]
 	>([[] as any]);
-	const {data: factorsData} = useFetch<APIResponse<TestrayFactor>>(
-		`${testrayFactorRest.resource}&filter=${searchUtil.eq(
-			'routineId',
-			routineId
-		)}`,
-		(response) => testrayFactorRest.transformDataFromList(response)
-	);
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const factorItems = factorsData?.items || [];
-
-	console.log(factorOptionsList);
 
 	useEffect(() => {
 		testrayFactorCategoryRest
-			.getFactoryCategoryItems(factorItems)
+			.getFactorCategoryItems(
+				selectedEnvironmentFactors.map(({value}) => ({
+					factorCategory: {id: value},
+				})) as TestrayFactor[]
+			)
 			.then(setFactorOptionsList);
-	}, [factorItems]);
+	}, [selectedEnvironmentFactors]);
 
 	return (
 		<>
-			{factorItems.map((factorItem, index) => (
+			{selectedEnvironmentFactors.map((factorItem, index) => (
 				<Form.Select
 					defaultOption={false}
 					key={index}
-					label={factorItem.factorCategory?.name}
-					multiple={!lastStep}
-					name="type"
+					label={factorItem.label}
+					name={`categories.${index}.factorOptionId`}
 					options={(factorOptionsList[index] || []).map(
 						({id, name}: any) => ({
 							label: name,
