@@ -88,6 +88,11 @@ const yupSchema = {
 		projectId: yup.string(),
 		teamId: yup.string(),
 	}),
+	enviroment: yup.object({
+		factorCategoryId: yup.mixed(),
+		options: yup.mixed(),
+		routineId: yup.number(),
+	}),
 	factor: yup.object({
 		factorCategoryId: yup.string().required(),
 		factorOptionId: yup.string().required(),
@@ -101,9 +106,8 @@ const yupSchema = {
 		name: yup.string().required(),
 	}),
 	factorOption: yup.object({
-		factorCategoryId: yup
-			.string()
-			.required(i18n.translate('type-is-a-required-field')),
+		factorCategoryId: yup.string().required(),
+		id: yup.string(),
 		name: yup.string().required(),
 	}),
 	option: yup.object({

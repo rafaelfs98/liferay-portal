@@ -17,6 +17,7 @@ import Rest from './Rest';
 import {TestrayFactor} from './types';
 
 type TestrayFactorType = Omit<typeof yupSchema.factor.__outputType, 'id'>;
+type FactorEnviroment = typeof yupSchema.enviroment.__outputType;
 
 class TestrayFactorRest extends Rest<TestrayFactorType, TestrayFactor> {
 	constructor() {
@@ -46,6 +47,31 @@ class TestrayFactorRest extends Rest<TestrayFactorType, TestrayFactor> {
 			}),
 			uri: 'factors',
 		});
+	}
+
+	public async create(data: TestrayFactorType): Promise<TestrayFactor> {
+		const options = data.factorOptionsId || [];
+		const categories = data.factorCategoryId || [];
+
+		console.log(options);
+
+		console.log(categories);
+
+		for (const factorCategories of categories) {
+			const factorCategoriesItems = factorCategories;
+
+			for (const factorOption of options) {
+				const factor = await super.create({
+					factorCategoryId: factorCategoriesItems,
+					factorOptionId: factorOption,
+					name: '',
+					routineId: data.routineId,
+					runId: 0,
+				});
+
+				console.log(factor);
+			}
+		}
 	}
 }
 

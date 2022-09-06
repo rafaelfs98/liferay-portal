@@ -47,21 +47,7 @@ const createComponent = async (component: Component) => {
 };
 
 const updateComponent = async (id: number, component: Partial<Component>) => {
-	if (component.name) {
-		const response = await fetcher(
-			`/components?filter=${searchUtil.eq(
-				'projectId',
-				component.projectId as any
-			)} and ${searchUtil.eq('name', component.name)}`
-		);
-
-		if (response.items?.length) {
-			throw new Error(
-				i18n.translate('the-component-name-already-exists')
-			);
-		}
-		fetcher.patch(`/components/${id}`, adapter(component as Component));
-	}
+	fetcher.patch(`/components/${id}`, adapter(component as Component));
 };
 
 const nestedFieldsParam = 'nestedFields=project,team';
