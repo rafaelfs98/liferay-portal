@@ -124,6 +124,11 @@ const yupSchema = {
 		id: yup.string(),
 		name: yup.string().required(),
 	}),
+	factorToRun: yup.object({
+		factorOptionName: yup.mixed(),
+		id: yup.string(),
+		number: yup.number(),
+	}),
 	option: yup.object({
 		name: yup.string(),
 	}),
