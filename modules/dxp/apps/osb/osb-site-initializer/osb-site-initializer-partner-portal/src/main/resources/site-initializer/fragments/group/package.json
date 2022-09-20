@@ -1,5 +1,6 @@
 {
 	"dependencies": {
+		"@clayui/layout": "^3.65.1",
 		"@clayui/panel": "3.73.0",
 		"@clayui/table": "3.56.0",
 		"react": "16.12.0",

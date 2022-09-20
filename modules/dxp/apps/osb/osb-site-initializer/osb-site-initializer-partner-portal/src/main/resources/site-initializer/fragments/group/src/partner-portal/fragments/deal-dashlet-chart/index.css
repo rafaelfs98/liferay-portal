@@ -1,0 +1,238 @@
+.bg-accent-1 {
+  background-color: #eb2453;
+}
+
+.bg-accent-2 {
+  background-color: #a7e204;
+}
+
+.bg-accent-3 {
+  background-color: #c70d95;
+}
+
+.bg-accent-4 {
+  background-color: #221874;
+}
+
+.text-brand-secondary-lighten-6 {
+  color: #fff;
+}
+
+:root {
+  --primary: #373ecc;
+  --btn-primary-hover-border-color: #0e1387;
+  --btn-primary-hover-background-color: #0e1387;
+}
+
+.label-chart {
+  font-weight: 500;
+}
+
+.label-chart.blocked {
+  background-color: #ffd764;
+  border-color: #ffd764;
+  color: #2e414e;
+}
+
+.label-chart.failed {
+  background-color: #fe5160;
+  border-color: #fe5160;
+  color: #fff;
+}
+
+.label-chart.in-analysis {
+  background-color: #f78c52;
+  border-color: #f78c52;
+  color: #fff;
+}
+
+.label-chart.untested {
+  background-color: #e3e9ee;
+  border-color: #e3e9ee;
+  color: #2e414e;
+}
+
+.label-chart.in-progress {
+  background-color: #e3e9ee;
+  border-color: #e3e9ee;
+  color: #2e414e;
+}
+
+.label-chart.test-fix {
+  background-color: #68d8ff;
+  border-color: #68d8ff;
+  color: #fff;
+}
+
+.label-chart.secondary {
+  background-color: #ed7105;
+  border-color: #ed7105;
+}
+
+.label-chart.light {
+  background-color: #f7f6f9;
+  border-color: #f7f6f9;
+}
+
+.label-chart.primary {
+  background-color: #5924eb;
+  border-color: #5924eb;
+}
+
+.label-chart.passed {
+  background-color: #37d27e;
+  border-color: #37d27e;
+  color: #fff;
+}
+
+.label-chart.info {
+  background-color: #2e5aac;
+  border-color: #2e5aac;
+}
+
+.build-alert-bar .alert-indicator {
+  display: none;
+}
+
+.build-alert-bar.alert-primary {
+  background-color: #dadbf5;
+  border-color: #dadbf5;
+  color: #101698;
+}
+
+.build-alert-bar.alert-primary .lead {
+  color: #101698;
+  font-weight: 400;
+}
+
+.build-alert-bar.alert-primary .label.label-primary {
+  background-color: #373ecc;
+  border-color: #373ecc;
+  color: #fff;
+}
+
+.build-alert-bar.alert-warning {
+  background-color: #fff0e5;
+  border-color: #fff0e5;
+  color: #d87827;
+}
+
+.build-alert-bar.alert-warning .lead {
+  color: #d87827;
+  font-weight: 400;
+}
+
+.build-alert-bar.alert-warning .label.label-warning {
+  background-color: #f78c52;
+  border-color: #f78c52;
+  color: #fff;
+}
+
+.build-alert-bar.alert-secondary {
+  background-color: transparent;
+  border-color: transparent;
+  color: #768b99;
+}
+
+.build-alert-bar.alert-secondary .lead {
+  color: #768b99;
+  font-weight: 400;
+}
+
+.build-alert-bar.alert-secondary .label.label-secondary {
+  background-color: #acbcc7;
+  border-color: #acbcc7;
+  color: #fff;
+}
+
+.label-tonal-success {
+  background-color: #edf7eb;
+}
+
+.testray-progress-bar {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  height: 15px;
+  margin: 10px 0;
+  white-space: nowrap;
+}
+
+.testray-progress-bar .progress-bar-item.blocked {
+  background-color: #f8d72e;
+}
+
+.testray-progress-bar .progress-bar-item.failed {
+  background-color: #e73a45;
+}
+
+.testray-progress-bar .progress-bar-item.others-completed {
+  background-color: #abbbff;
+}
+
+.testray-progress-bar .progress-bar-item.passed {
+  background-color: #3cd587;
+}
+
+.testray-progress-bar .progress-bar-item.self-completed {
+  background-color: #373ecc;
+}
+
+.testray-progress-bar .progress-bar-item.test-fix {
+  background-color: #59bbfc;
+}
+
+.testray-progress-bar .progress-bar-item.test-incomplete {
+  background-color: #e3e9ee;
+}
+
+.testray-progress-bar .progress-bar-item:first-child {
+  border-bottom-left-radius: 30px;
+  border-top-left-radius: 30px;
+}
+
+.testray-progress-bar .progress-bar-item:last-child {
+  border-bottom-right-radius: 30px;
+  border-top-right-radius: 30px;
+}
+
+.testray-progress-bar .legend-item-label {
+  color: #acbcc7;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.testray-progress-bar .legend-bar-item {
+  height: 16px;
+  width: 16px;
+}
+
+.testray-progress-bar .legend-bar-item.blocked {
+  background-color: #f8d72e;
+}
+
+.testray-progress-bar .legend-bar-item.failed {
+  background-color: #e73a45;
+}
+
+.testray-progress-bar .legend-bar-item.others-completed {
+  background-color: #abbbff;
+}
+
+.testray-progress-bar .legend-bar-item.passed {
+  background-color: #3cd587;
+}
+
+.testray-progress-bar .legend-bar-item.self-completed {
+  background-color: #373ecc;
+}
+
+.testray-progress-bar .legend-bar-item.test-fix {
+  background-color: #59bbfc;
+}
+
+.testray-progress-bar .legend-bar-item.test-incomplete {
+  background-color: #e3e9ee;
+}
+/*# sourceMappingURL=index.css.map */
