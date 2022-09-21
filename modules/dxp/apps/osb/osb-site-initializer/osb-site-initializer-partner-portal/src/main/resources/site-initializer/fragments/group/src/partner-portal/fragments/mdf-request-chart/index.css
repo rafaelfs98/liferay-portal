@@ -1,0 +1,78 @@
+.label-chart {
+	font-weight: 500;
+}
+
+.label-chart.pending {
+	background-color: #ffd764;
+	border-color: #ffd764;
+	color: #2e414e;
+}
+
+.label-chart.approved {
+	background-color: #37d27e;
+	border-color: #37d27e;
+	color: #fff;
+}
+
+.testray-progress-bar {
+	border-radius: 4px;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	height: 24px;
+	margin: 10px, 0;
+	white-space: nowrap;
+}
+
+.testray-progress-bar .progress-bar-item.pending {
+	background-color: #f8d72e;
+}
+
+.testray-progress-bar .progress-bar-item.approved {
+	background-color: #3cd587;
+}
+
+.testray-progress-bar .legend-item-label {
+	color: #6c6c75;
+	font-size: 13px;
+	font-weight: 400;
+	text-transform: uppercase;
+}
+
+.testray-progress-bar .legend-bar-item {
+	height: 16px;
+	width: 16px;
+}
+
+.testray-progress-bar .legend-bar-item.pending {
+	background-color: #f8d72e;
+}
+
+.testray-progress-bar .legend-bar-item.approved {
+	background-color: #3cd587;
+}
+
+/*# sourceMappingURL=index.css.map */
+.approvedItem {
+	margin-right: 2px;
+}
+
+.progress-bar-border {
+	box-sizing: border-box;
+	padding: 4px;
+	background-color: #e7efff;
+	border-radius: 4px;
+	max-height: 32px;
+}
+.title {
+	color: #282934;
+	font-size: 14px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+.titlePrincipal {
+	color: #3f404b;
+	font-size: 18px;
+	font-weight: 700;
+	text-transform: uppercase;
+}

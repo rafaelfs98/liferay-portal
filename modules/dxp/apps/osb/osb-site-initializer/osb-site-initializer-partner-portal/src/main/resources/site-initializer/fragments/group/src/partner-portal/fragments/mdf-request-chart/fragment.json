@@ -3,6 +3,6 @@
 	"cssPath": "index.css",
 	"htmlPath": "index.html",
 	"jsPath": "index.js",
-	"name": "Deal Dashlet Chart",
+	"name": "MDF Request Chart",
 	"type": "react"
 }
