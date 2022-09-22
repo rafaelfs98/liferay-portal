@@ -9,34 +9,35 @@
  * distribution rights of the Software.
  */
 
+import ClayButton from '@clayui/button';
 import classNames from 'classnames';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const NaNToZero = (value) => (Number.isNaN(value) ? 0 : value);
 
-export const LABEL_GREATER_THAN_99 = '> 99';
-
-export const LABEL_LESS_THAN_1 = '< 1';
-
 const Progress = {
-	approved: 300,
-	pending: 92,
+	approved: {qtd: 300, total: 'USD $80.000,29'},
+	pending: {qtd: 400, total: 'USD $12.993,00'},
 };
 const ProgressClain = {
-	approved: 120,
-	pending: 100,
+	approved: {qtd: 120, total: 'USD $6.500,50'},
+	pending: {qtd: 100, total: 'USD $5.500,00'},
+};
+
+const Legend = {
+	Approved: {qtd: 120, total: 'USD $80.000,29'},
+	Requested: {qtd: 100, total: 'USD $80.000,29'},
 };
 
 function TaskbarProgress({
 	items,
-	legend,
 	taskbarClassNames = {
 		approved: 'approved',
 		pending: 'pending',
 	},
 }) {
 	const total = items
-		.map(([, value]) => value)
+		.map(([, value]) => value.qtd)
 		.reduce((prevValue, currentValue) => prevValue + currentValue);
 
 	return (
@@ -46,7 +47,7 @@ function TaskbarProgress({
 					{items.map((item, index) => {
 						const [label, value] = item;
 
-						const percent = NaNToZero((value / total) * 100);
+						const percent = NaNToZero((value.qtd / total) * 100);
 
 						return (
 							<div
@@ -59,37 +60,42 @@ function TaskbarProgress({
 								)}
 								key={index}
 								style={{width: `${percent}%`}}
-								title={`${value} ${label}`}
+								title={`${value.qtd} ${label}`}
 							/>
 						);
 					})}
 				</div>
 			</div>
 
-			{legend && (
-				<div className="d-flex testray-progress-bar">
-					{items.map((item, index) => {
-						const [label, value] = item;
+			<div className="d-flex testray-progress-bar">
+				{items.map((item, index) => {
+					const [label, value] = item;
+					const percent = NaNToZero((value.qtd / total) * 100);
 
-						return (
-							<div className="d-flex flex-row" key={index}>
-								<div className="align-items-center d-flex">
+					return (
+						<div
+							className="d-flex flex-row"
+							key={index}
+							style={{width: `${percent}%`}}
+						>
+							<div className="align-items-center">
+								<div className="d-flex flex-column">
 									<span
-										className="font-family-sans-serif mx-2"
-										title={value}
+										className="font-family-sans-serif mx-1"
+										title={value.qtd}
 									>
-										{value}
+										{value.qtd} {label}
+									</span>
+
+									<span className="font-family-sans-serif mx-1">
+										{value.total}
 									</span>
 								</div>
-
-								<span className="legend-item-label mt-1 text-neutral-6">
-									{label.toUpperCase()}
-								</span>
 							</div>
-						);
-					})}
-				</div>
-			)}
+						</div>
+					);
+				})}
+			</div>
 		</>
 	);
 }
@@ -97,8 +103,8 @@ function TaskbarProgress({
 function Label({
 	items,
 	taskbarClassNames = {
-		approved: 'approved',
-		pending: 'pending',
+		Approved: 'approved',
+		Requested: 'requested',
 	},
 }) {
 	return (
@@ -119,7 +125,7 @@ function Label({
 							</div>
 
 							<span className="legend-item-label ml-1 mr-2 mt-1 text-neutral-6">
-								{label.toUpperCase()}
+								{label}
 							</span>
 						</div>
 					);
@@ -129,84 +135,51 @@ function Label({
 	);
 }
 
-export default function ({legend = true}) {
-	const items = Progress;
-	const sortedItems = Object.entries(items).sort(
-		([, valueA], [, valueB]) => valueB - valueA
-	);
-	const itemsClain = ProgressClain;
-	const sortedItemsClain = Object.entries(itemsClain).sort(
-		([, valueA], [, valueB]) => valueB - valueA
-	);
+export default function () {
+	const sortedItems = Object.entries(Progress);
 
-	const totalCompleted = useMemo(() => {
-		const _totalCompleted = sortedItems
-			.filter(([label, value]) => {
-				if (label !== 'incomplete') {
-					return value;
-				}
-			})
-			.map(([, value]) => value);
+	const sortedItemsClain = Object.entries(ProgressClain);
 
-		if (_totalCompleted.length) {
-			return _totalCompleted.reduce(
-				(previus, current) => previus + current
-			);
-		}
+	const sortedItemsLegend = Object.entries(Legend);
 
-		return 0;
-	}, [sortedItems]);
+	const _totalRequest = Progress.approved.qtd + Progress.pending.qtd;
 
-	const totalCompletedClain = useMemo(() => {
-		const _totalCompletedClain = sortedItemsClain
-			.filter(([label, value]) => {
-				if (label !== 'incomplete') {
-					return value;
-				}
-			})
-			.map(([, value]) => value);
-
-		if (_totalCompletedClain.length) {
-			return _totalCompletedClain.reduce(
-				(previus, current) => previus + current
-			);
-		}
-
-		return 0;
-	}, [sortedItemsClain]);
+	const _totalClain = ProgressClain.approved.qtd + ProgressClain.pending.qtd;
 
 	return (
 		<div className="bg-neutral-0 container d-flex flex-column p-4">
-			<div className="title">MDF Requests</div>
-
-			<hr />
+			<div className="titleMDF">MDF Requests</div>
 
 			<div>
-				<div className="mb-4">
+				<hr />
+			</div>
+
+			<div>
+				<div className="mb-5">
 					<div className="d-flex flex-row justify-content-between">
-						<div className="title">Request Funds</div>
+						<div className="titleChart">Request Funds</div>
 
 						<div>
 							<span className="font-weight-bold text-neutral-9">
-								{totalCompleted}
+								{_totalRequest}
 							</span>{' '}
-							total requests|
+							total requests |
 							<span className="font-weight-bold text-neutral-9">
 								USD $92.993,29
 							</span>
 						</div>
 					</div>
 
-					<TaskbarProgress items={sortedItems} legend={legend} />
+					<TaskbarProgress items={sortedItems} />
 				</div>
 
-				<div className="mb-4">
+				<div className="mb-3">
 					<div className="d-flex flex-row justify-content-between">
-						<div className="title">Clain Funds</div>
+						<div className="titleChart">Clain Funds</div>
 
 						<div>
 							<span className="font-weight-bold text-neutral-9">
-								{totalCompletedClain}
+								{_totalClain}
 							</span>{' '}
 							total |
 							<span className="font-weight-bold text-neutral-9">
@@ -215,20 +188,32 @@ export default function ({legend = true}) {
 						</div>
 					</div>
 
-					<TaskbarProgress
-						items={sortedItemsClain}
-						legend={legend}
-						totalCompleted={totalCompletedClain}
-					/>
+					<TaskbarProgress items={sortedItemsClain} />
 				</div>
 			</div>
 
-			<div>
-				<Label items={sortedItems} />
+			<div className="mt-4">
+				<Label items={sortedItemsLegend} />
 			</div>
 
 			<div>
-				<button>teste</button>
+				<hr />
+			</div>
+
+			<div className="d-flex">
+				<ClayButton
+					className="clayButtonPrimary mr-1 mt-2"
+					displayType="primary"
+				>
+					New MDF Request
+				</ClayButton>
+
+				<ClayButton
+					className="clayButtonSecondary mt-2"
+					displayType="secondary"
+				>
+					View all
+				</ClayButton>
 			</div>
 		</div>
 	);

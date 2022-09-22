@@ -25,31 +25,39 @@
 }
 
 .testray-progress-bar .progress-bar-item.pending {
-	background-color: #f8d72e;
+	background-color: #ffae1b;
+	border-radius: 4px;
 }
 
 .testray-progress-bar .progress-bar-item.approved {
-	background-color: #3cd587;
+	border-radius: 4px;
+	background-color: #47c464;
 }
 
 .testray-progress-bar .legend-item-label {
 	color: #6c6c75;
 	font-size: 13px;
 	font-weight: 400;
-	text-transform: uppercase;
+	line-height: 16px;
 }
 
 .testray-progress-bar .legend-bar-item {
+	border-radius: 2px;
 	height: 16px;
+	margin-right: 11px;
 	width: 16px;
 }
 
 .testray-progress-bar .legend-bar-item.pending {
-	background-color: #f8d72e;
+	background-color: #ffae1b;
+}
+.testray-progress-bar .legend-bar-item.requested {
+	background-color: #ffae1b;
+	margin-left: 32px;
 }
 
 .testray-progress-bar .legend-bar-item.approved {
-	background-color: #3cd587;
+	background-color: #47c464;
 }
 
 /*# sourceMappingURL=index.css.map */
@@ -57,22 +65,41 @@
 	margin-right: 2px;
 }
 
+.pendingItem {
+	margin-left: 50px;
+}
+
 .progress-bar-border {
-	box-sizing: border-box;
-	padding: 4px;
 	background-color: #e7efff;
 	border-radius: 4px;
+	box-sizing: border-box;
 	max-height: 32px;
+	padding: 4px;
 }
-.title {
-	color: #282934;
-	font-size: 14px;
-	font-weight: 700;
-	text-transform: uppercase;
-}
-.titlePrincipal {
-	color: #3f404b;
+.titleMDF {
 	font-size: 18px;
 	font-weight: 700;
-	text-transform: uppercase;
+	height: 20px;
+	line-height: 20px;
+}
+.titleChart {
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 20px;
+}
+
+.clayButtonPrimary {
+	height: 45px;
+	margin-top: 3px;
+	padding: 12px;
+	width: 165px;
+}
+
+.clayButtonSecondary {
+	border-color: #0b5fff;
+	color: #0b5fff;
+	height: 45px;
+	margin-left: 20px;
+	margin-top: 3px;
+	width: 110px;
 }
