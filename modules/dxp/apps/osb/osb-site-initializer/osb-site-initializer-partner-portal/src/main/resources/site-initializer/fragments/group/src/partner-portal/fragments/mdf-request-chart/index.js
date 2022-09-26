@@ -13,25 +13,22 @@ import ClayButton from '@clayui/button';
 import classNames from 'classnames';
 import React from 'react';
 
+import LegendMdf from './components/mdfLegend';
+
 const NaNToZero = (value) => (Number.isNaN(value) ? 0 : value);
 
 const Progress = {
 	approved: {qtd: 300, total: 'USD $80.000,29'},
-	pending: {qtd: 400, total: 'USD $12.993,00'},
+	pending: {qtd: 92, total: 'USD $12.993,00'},
 };
 const ProgressClain = {
 	approved: {qtd: 120, total: 'USD $6.500,50'},
 	pending: {qtd: 100, total: 'USD $5.500,00'},
 };
 
-const Legend = {
-	Approved: {qtd: 120, total: 'USD $80.000,29'},
-	Requested: {qtd: 100, total: 'USD $80.000,29'},
-};
-
-function TaskbarProgress({
+function MdfbarProgress({
 	items,
-	taskbarClassNames = {
+	MdfbarClassNames = {
 		approved: 'approved',
 		pending: 'pending',
 	},
@@ -43,7 +40,7 @@ function TaskbarProgress({
 	return (
 		<>
 			<div className="progress-bar-border">
-				<div className="testray-progress-bar">
+				<div className="mdf-progress-bar">
 					{items.map((item, index) => {
 						const [label, value] = item;
 
@@ -53,7 +50,7 @@ function TaskbarProgress({
 							<div
 								className={classNames(
 									'progress-bar-item',
-									taskbarClassNames[label],
+									MdfbarClassNames[label],
 									{
 										approvedItem: index === 0,
 									}
@@ -67,7 +64,7 @@ function TaskbarProgress({
 				</div>
 			</div>
 
-			<div className="d-flex testray-progress-bar">
+			<div className="d-flex mdf-progress-bar">
 				{items.map((item, index) => {
 					const [label, value] = item;
 					const percent = NaNToZero((value.qtd / total) * 100);
@@ -100,47 +97,10 @@ function TaskbarProgress({
 	);
 }
 
-function Label({
-	items,
-	taskbarClassNames = {
-		Approved: 'approved',
-		Requested: 'requested',
-	},
-}) {
-	return (
-		<>
-			<div className="d-flex testray-progress-bar">
-				{items.map((item, index) => {
-					const [label] = item;
-
-					return (
-						<div className="d-flex flex-row" key={index}>
-							<div className="align-items-center d-flex">
-								<div
-									className={classNames(
-										'legend-bar-item font-family-sans-serif',
-										taskbarClassNames[label]
-									)}
-								/>
-							</div>
-
-							<span className="legend-item-label ml-1 mr-2 mt-1 text-neutral-6">
-								{label}
-							</span>
-						</div>
-					);
-				})}
-			</div>
-		</>
-	);
-}
-
 export default function () {
 	const sortedItems = Object.entries(Progress);
 
 	const sortedItemsClain = Object.entries(ProgressClain);
-
-	const sortedItemsLegend = Object.entries(Legend);
 
 	const _totalRequest = Progress.approved.qtd + Progress.pending.qtd;
 
@@ -170,7 +130,7 @@ export default function () {
 						</div>
 					</div>
 
-					<TaskbarProgress items={sortedItems} />
+					<MdfbarProgress items={sortedItems} />
 				</div>
 
 				<div className="mb-3">
@@ -188,12 +148,12 @@ export default function () {
 						</div>
 					</div>
 
-					<TaskbarProgress items={sortedItemsClain} />
+					<MdfbarProgress items={sortedItemsClain} />
 				</div>
 			</div>
 
 			<div className="mt-4">
-				<Label items={sortedItemsLegend} />
+				<LegendMdf />
 			</div>
 
 			<div>
@@ -204,6 +164,7 @@ export default function () {
 				<ClayButton
 					className="clayButtonPrimary mr-1 mt-2"
 					displayType="primary"
+					size="sm"
 				>
 					New MDF Request
 				</ClayButton>
@@ -211,6 +172,7 @@ export default function () {
 				<ClayButton
 					className="clayButtonSecondary mt-2"
 					displayType="secondary"
+					size="sm"
 				>
 					View all
 				</ClayButton>

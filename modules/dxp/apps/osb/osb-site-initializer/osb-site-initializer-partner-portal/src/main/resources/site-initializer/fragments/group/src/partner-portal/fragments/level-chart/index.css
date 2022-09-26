@@ -2,19 +2,19 @@
 	font-weight: 500;
 }
 
-.label-chart.pending {
+.label-chart.remaining {
 	background-color: #ffd764;
 	border-color: #ffd764;
 	color: #2e414e;
 }
 
-.label-chart.approved {
+.label-chart.achieved {
 	background-color: #37d27e;
 	border-color: #37d27e;
 	color: #fff;
 }
 
-.mdf-progress-bar {
+.level-progress-bar {
 	border-radius: 4px;
 	display: -webkit-box;
 	display: -ms-flexbox;
@@ -24,48 +24,49 @@
 	white-space: nowrap;
 }
 
-.mdf-progress-bar .progress-bar-item.pending {
-	background-color: #ffae1b;
+.level-progress-bar .progress-bar-item.remaining {
+	background-color: #000239;
 	border-radius: 4px;
 }
 
-.mdf-progress-bar .progress-bar-item.approved {
+.level-progress-bar .progress-bar-item.achieved {
 	border-radius: 4px;
-	background-color: #47c464;
+	background-color: #4b9bff;
 }
 
-.mdf-progress-bar .legend-item-label {
+.level-progress-bar .legend-item-label {
 	color: #6c6c75;
 	font-size: 13px;
 	font-weight: 400;
 	line-height: 16px;
 }
 
-.mdf-progress-bar .legend-bar-item {
+.level-progress-bar .legend-bar-item {
 	border-radius: 2px;
 	height: 16px;
 	margin-right: 11px;
 	width: 16px;
 }
 
-.mdf-progress-bar .legend-bar-item.pending {
-	background-color: #ffae1b;
+.level-progress-bar .legend-bar-item.remaining {
+	background-color: #000239;
 }
-.mdf-progress-bar .legend-bar-item.requested {
-	background-color: #ffae1b;
+.level-progress-bar .legend-bar-item.supplemental {
+	background-color: #000239;
 	margin-left: 32px;
 }
 
-.mdf-progress-bar .legend-bar-item.approved {
-	background-color: #47c464;
+.level-progress-bar .legend-bar-item.achieved {
+	background-color: #4b9bff;
 }
 
 /*# sourceMappingURL=index.css.map */
-.approvedItem {
+
+.achievedItem {
 	margin-right: 2px;
 }
 
-.pendingItem {
+.remaining Item {
 	margin-left: 50px;
 }
 
@@ -76,12 +77,42 @@
 	max-height: 32px;
 	padding: 4px;
 }
-.titleMDF {
+.title {
 	font-size: 18px;
 	font-weight: 700;
 	height: 20px;
 	line-height: 20px;
+	width: 362px;
 }
+.label-gold {
+	color: #c28b00;
+	font-weight: 600;
+	font-size: 26px;
+	line-height: 32px;
+}
+.label-partner {
+	font-color: #282934;
+	font-size: 26px;
+	font-weight: 300;
+	line-height: 32px;
+}
+.label-business {
+	font-color: #282934;
+	font-weight: 700;
+	line-height: 16px;
+}
+
+.label-progress.number {
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 16px;
+}
+.label-progress {
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 16px;
+}
+
 .titleChart {
 	font-size: 14px;
 	font-weight: 700;
