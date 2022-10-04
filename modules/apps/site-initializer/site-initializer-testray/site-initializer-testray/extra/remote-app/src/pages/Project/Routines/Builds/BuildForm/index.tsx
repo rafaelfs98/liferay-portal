@@ -44,11 +44,21 @@ type OutletContext = {
 	mutateBuild: KeyedMutator<any>;
 	testrayBuild?: TestrayBuild;
 };
+const getIsTemplateQueryParam = () => {
+	const queryParams = new URLSearchParams(window.location.search);
+
+	return queryParams.get('template') === 'true';
+};
 
 const BuildForm = () => {
 	const [caseIds, setCaseIds] = useState<number[]>([]);
-	const {buildId} = useParams();
-	const {projectId, routineId} = useParams();
+
+	const buildTemplate = getIsTemplateQueryParam();
+
+	// eslint-disable-next-line no-console
+	console.log(buildTemplate);
+
+	const {buildId, projectId, routineId} = useParams();
 
 	useEffect(() => {
 		if (buildId) {
