@@ -12,34 +12,75 @@
  * details.
  */
 
+import {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import React, {ReactElement, useState} from 'react';
+import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 
-import {Dropdown} from '../../context/HeaderContext';
-import Form from '../Form';
+import Form from '../../../../components/Form';
+import Tooltip from '../../../../components/Tooltip';
+import {Dropdown} from '../../../../context/HeaderContext';
+import {useFetch} from '../../../../hooks/useFetch';
+import i18n from '../../../../i18n';
+import {APIResponse, TestrayBuild} from '../../../../services/rest';
+import {testrayBuildImpl} from '../../../../services/rest/TestrayBuild';
+import {searchUtil} from '../../../../util/search';
 
 type DropDownProps = {
-	items: Dropdown;
-	position?: any;
-	trigger: ReactElement;
+	routineId: string;
 };
 
-const DropDown: React.FC<DropDownProps> = ({
-	items,
-	position = Align.BottomCenter,
-	trigger,
-}) => {
+const DropDownButton: React.FC<DropDownProps> = ({routineId}) => {
 	const navigate = useNavigate();
 	const [active, setActive] = useState(false);
+
+	const {data} = useFetch<APIResponse<TestrayBuild>>(
+		`${testrayBuildImpl.resource}&filter=${searchUtil.eq(
+			'routineId',
+			routineId
+		)} and ${searchUtil.eq('template', true)} and ${searchUtil.eq(
+			'active',
+			true
+		)} `
+	);
+
+	const items: Dropdown = [
+		{
+			items: [
+				{
+					icon: 'plus',
+					label: 'New Build',
+					path: './create',
+				},
+				{
+					icon: 'plus',
+					label: 'New Template',
+					path: './create?template=true',
+				},
+			],
+
+			title: i18n.translate('create'),
+		},
+	];
 
 	return (
 		<ClayDropDown
 			active={active}
-			alignmentPosition={position}
+			alignmentPosition={Align.BottomCenter}
 			onActiveChange={setActive}
-			trigger={trigger}
+			trigger={
+				<div>
+					<Tooltip position="down" title={i18n.translate('manage')}>
+						<div className="testray-sidebar-item">
+							<ClayButtonWithIcon
+								className="nav-btn nav-btn-monospaced"
+								symbol="plus"
+							/>
+						</div>
+					</Tooltip>
+				</div>
+			}
 		>
 			<ClayDropDown.ItemList>
 				{items.map((section, index) => (
@@ -47,14 +88,7 @@ const DropDown: React.FC<DropDownProps> = ({
 						<ClayDropDown.Group header={section.title}>
 							{section.items.map(
 								(
-									{
-										divider,
-										icon,
-										label,
-										onClick,
-										path,
-										search,
-									},
+									{divider, icon, label, onClick, path},
 									itemIndex
 								) => (
 									<React.Fragment key={itemIndex}>
@@ -97,21 +131,36 @@ const DropDown: React.FC<DropDownProps> = ({
 													{label}
 												</span>
 											</div>
-
-											<div className="align-items-center d-flex testray-sidebar-item text-dark">
-												{search && (
-													<Form.Input
-														label="screen-name"
-														name="alternateName"
-													/>
-												)}
-											</div>
 										</ClayDropDown.Item>
 
 										{divider && <ClayDropDown.Divider />}
 									</React.Fragment>
 								)
 							)}
+
+							<div className="align-items-center d-flex ml-2 text-dark">
+								<Form.Input
+									label="screen-name"
+									name="alternateName"
+								/>
+							</div>
+
+							<div>
+								<ul>
+									{data?.items.map((item, index) => (
+										<ClayDropDown.Item
+											key={index}
+											onClick={() => {
+												alert('teste');
+											}}
+										>
+											<li style={{listStyle: 'none'}}>
+												{item.name}
+											</li>
+										</ClayDropDown.Item>
+									))}
+								</ul>
+							</div>
 						</ClayDropDown.Group>
 
 						{items.length - 1 !== index && <ClayDropDown.Divider />}
@@ -122,4 +171,4 @@ const DropDown: React.FC<DropDownProps> = ({
 	);
 };
 
-export default DropDown;
+export default DropDownButton;
