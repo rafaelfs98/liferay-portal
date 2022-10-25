@@ -215,6 +215,15 @@ export type TestraySubTask = {
 	statusUpdateDate: string;
 };
 
+export type TestraySubTaskCasesResult = {
+	caseResult?: TestrayCaseResult;
+	id?: number;
+	name?: string;
+	r_caseResultToSubtasksCasesResults_c_caseResult?: TestrayCaseResult;
+	r_subtaskToSubtasksCasesResults_c_subtask?: TestraySubTask;
+	subTask?: TestraySubTask;
+};
+
 export type TestraySuite = {
 	caseParameters: string;
 	creator: {

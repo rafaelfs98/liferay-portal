@@ -41,6 +41,8 @@ export default {
 	'are-you-sure-you-want-to-delete-this-item':
 		'Are you sure you want to delete this item?',
 	'assign': 'Assign',
+	'assign-and-begin-analysis': 'Assign and Begin Analysis',
+	'assign-and-reanalyze': 'Assign and Reanalyze',
 	'assign-to-me': 'Assign to Me',
 	'assign-user-groups': 'Assign User Groups',
 	'assign-users': 'Assign Users',
@@ -93,6 +95,7 @@ export default {
 	'comments': 'Comments',
 	'compare-details': 'Compare Details',
 	'compare-runs': 'Compare Runs',
+	'complete': 'Complete',
 	'complete-test': 'Complete Test',
 	'component': 'Component',
 	'components': 'Components',
@@ -253,6 +256,7 @@ export default {
 	'result': 'Result',
 	'results': 'Results',
 	'resync-with-jira': 'Resync with Jira',
+	'return-to-open': 'Return to open',
 	'roles': 'Roles',
 	'routine': 'Routine',
 	'routine-archived': 'Routine archived',
@@ -325,7 +329,7 @@ export default {
 	'the-team-cannot-be-deleted-because-it-has-associated-components':
 		'The team cannot be deleted because it has associated components',
 	'the-team-name-already-exists': 'The team name already exists',
-	'the-x-name-already-exists': 'The {0} name already exists',
+	'the-x-name-already-exists': 'The {0} name already exists.',
 	'there-are-no-entries-yet': 'There are no entries yet.',
 	'there-are-no-linked-cases': 'There are no linked cases.',
 	'there-are-no-linked-users': 'There are no linked users.',

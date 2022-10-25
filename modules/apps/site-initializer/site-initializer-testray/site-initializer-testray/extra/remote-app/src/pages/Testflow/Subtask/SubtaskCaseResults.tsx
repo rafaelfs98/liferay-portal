@@ -15,10 +15,8 @@
 import ListView from '../../../components/ListView';
 import StatusBadge from '../../../components/StatusBadge';
 import i18n from '../../../i18n';
-import {
-	caseResultsResource,
-	testrayCaseResultRest,
-} from '../../../services/rest';
+import {TestraySubTaskCasesResult} from '../../../services/rest';
+import {testraySubtaskCaseResultImpl} from '../../../services/rest/TestraySubtaskCaseResults';
 import {getStatusLabel} from '../../../util/constants';
 
 const SubtasksCaseResults = () => {
@@ -27,20 +25,30 @@ const SubtasksCaseResults = () => {
 			managementToolbarProps={{
 				visible: false,
 			}}
-			resource={caseResultsResource}
+			resource={testraySubtaskCaseResultImpl.resource}
 			tableProps={{
 				columns: [
 					{
-						key: 'case',
-						render: (testrayCase) => {
-							return testrayCase?.caseNumber;
+						clickable: true,
+						key: 'run',
+						render: (
+							_,
+							testraySubTaskCaseResult: TestraySubTaskCasesResult
+						) => {
+							return testraySubTaskCaseResult?.caseResult?.case
+								?.caseNumber;
 						},
 						value: i18n.translate('run'),
 					},
 					{
-						key: 'case',
-						render: (testrayCase) => {
-							return testrayCase?.priority;
+						clickable: true,
+						key: 'priority',
+						render: (
+							_,
+							testraySubTaskCaseResult: TestraySubTaskCasesResult
+						) => {
+							return testraySubTaskCaseResult.caseResult?.case
+								?.priority;
 						},
 						value: i18n.translate('priority'),
 					},
@@ -55,15 +63,26 @@ const SubtasksCaseResults = () => {
 					{
 						clickable: true,
 						key: 'component',
-						render: (component) => {
-							return component?.name;
+						render: (
+							_,
+							testraySubTaskCaseResult: TestraySubTaskCasesResult
+						) => {
+							return testraySubTaskCaseResult.caseResult
+								?.component?.id;
 						},
 						value: i18n.translate('component'),
 					},
+
 					{
 						clickable: true,
 						key: 'case',
-						render: (testrayCase) => testrayCase?.name,
+						render: (
+							_,
+							testraySubTaskCaseResult: TestraySubTaskCasesResult
+						) => {
+							return testraySubTaskCaseResult.caseResult?.case
+								?.name;
+						},
 						size: 'md',
 						value: i18n.translate('case'),
 					},
@@ -71,21 +90,34 @@ const SubtasksCaseResults = () => {
 
 					{
 						key: 'dueStatus',
-						render: (dueStatus) => {
+						render: (
+							_,
+							testraySubTaskCaseResult: TestraySubTaskCasesResult
+						) => {
 							return (
-								<StatusBadge type={getStatusLabel(dueStatus)}>
-									{getStatusLabel(dueStatus)}
+								<StatusBadge
+									type={getStatusLabel(
+										testraySubTaskCaseResult.caseResult
+											?.dueStatus as number
+									)}
+								>
+									{getStatusLabel(
+										testraySubTaskCaseResult.caseResult
+											?.dueStatus as number
+									)}
 								</StatusBadge>
 							);
 						},
+
 						value: i18n.translate('status'),
 					},
 				],
 				navigateTo: ({build, id}) =>
 					`/project/routines/${build?.routine?.id}/build/${build?.id}/case-result/${id}`,
+				rowSelectable: true,
 			}}
 			transformData={(response) =>
-				testrayCaseResultRest.transformDataFromList(response)
+				testraySubtaskCaseResultImpl.transformDataFromList(response)
 			}
 		/>
 	);
