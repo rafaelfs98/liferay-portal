@@ -304,6 +304,7 @@ export default {
 	'subtask': 'Subtask',
 	'subtask-details': 'Subtask Details',
 	'subtask-name': 'Subtask Name',
+	'subtasks': 'Subtasks',
 	'suite': 'Suite',
 	'suite-name': 'Suite Name',
 	'suites': 'Suites',

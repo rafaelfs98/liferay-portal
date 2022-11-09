@@ -1,0 +1,25 @@
+.testray-floating-box {
+	background-color: white;
+	margin: auto;
+	flex-direction: column;
+	width: 650px;
+	bottom: 15px;
+
+	.alert {
+		margin-bottom: 0px;
+		padding: 5px;
+		background-color: #fff0f1;
+	}
+
+	.label-selected {
+		align-items: center;
+
+		.count {
+			background-color: #373ecc;
+			color: white;
+			height: 25px;
+			width: 25px;
+			text-align: center;
+		}
+	}
+}

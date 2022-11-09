@@ -13,12 +13,14 @@
  */
 
 import ClayIcon from '@clayui/icon';
+import {useState} from 'react';
 import {Link, useOutletContext} from 'react-router-dom';
 import {KeyedMutator} from 'swr';
 
 import Avatar from '../../components/Avatar';
 import AssignToMe from '../../components/Avatar/AssigneToMe';
 import Code from '../../components/Code';
+import FloatingBox from '../../components/FloatingBox/index';
 import Container from '../../components/Layout/Container';
 import ListView from '../../components/ListView';
 import Loading from '../../components/Loading';
@@ -62,6 +64,7 @@ const TestFlowTasks = () => {
 	const {mutateTask, testrayTask} = useOutletContext<OutletContext>();
 	const {updateItemFromList} = useMutate();
 	const {actions, completeModal} = useSubtasksActions();
+	const [state, setState] = useState<number[]>([]);
 
 	const {data: taskUserResponse} = useFetch<APIResponse<TestrayTaskUser>>(
 		testrayTask?.id
@@ -225,6 +228,7 @@ const TestFlowTasks = () => {
 						filterFields: filters.subtasks as any,
 						title: i18n.translate('subtasks'),
 					}}
+					onContextChange={({selectedRows}) => setState(selectedRows)}
 					resource={testraySubTaskImpl.resource}
 					tableProps={{
 						actions,
@@ -307,6 +311,7 @@ const TestFlowTasks = () => {
 								value: i18n.translate('assignee'),
 							},
 						],
+
 						navigateTo: (subtask) => `subtasks/${subtask.id}`,
 						rowSelectable: true,
 						rowWrap: true,
@@ -325,6 +330,22 @@ const TestFlowTasks = () => {
 				mutate={mutateTask}
 				subtask={completeModal.modalState}
 			/>
+			{!!state.length && (
+				<FloatingBox
+					alerts={[
+						{
+							text:
+								'Please select at least two subtasks to merge.',
+						},
+						{
+							text: 'must be assigned to you to use in a merge.',
+							title: 'ST-1',
+						},
+					]}
+					buttonTitle="Merge selected subtasks into the highest scoring subtask."
+					selectdCount={state.length}
+				/>
+			)}
 		</>
 	);
 };
