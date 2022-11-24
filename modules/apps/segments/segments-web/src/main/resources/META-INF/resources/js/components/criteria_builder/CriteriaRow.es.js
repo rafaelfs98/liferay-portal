@@ -470,6 +470,9 @@ class CriteriaRow extends Component {
 				</span>
 
 				<ClaySelectWithOption
+					aria-label={Liferay.Language.get(
+						'select-property-operator-option'
+					)}
 					className="criterion-input form-control operator-input"
 					disabled={disabledInput}
 					onChange={this._handleInputChange('operatorName')}
@@ -495,24 +498,36 @@ class CriteriaRow extends Component {
 						displayType=""
 						onClick={this._handleDelete}
 					>
-						{Liferay.Language.get('delete')}
+						{Liferay.Language.get('delete-segment-property')}
 					</ClayButton>
 				) : (
 					<>
 						<ClayButton
+							aria-label={Liferay.Language.get(
+								'duplicate-segment-property'
+							)}
 							className="btn-outline-borderless btn-sm mr-1"
 							displayType="secondary"
 							monospaced
 							onClick={this._handleDuplicate}
+							title={Liferay.Language.get(
+								'duplicate-segment-property'
+							)}
 						>
 							<ClayIcon symbol="paste" />
 						</ClayButton>
 
 						<ClayButton
+							aria-label={Liferay.Language.get(
+								'delete-segment-property'
+							)}
 							className="btn-outline-borderless btn-sm"
 							displayType="secondary"
 							monospaced
 							onClick={this._handleDelete}
+							title={Liferay.Language.get(
+								'delete-segment-property'
+							)}
 						>
 							<ClayIcon symbol="times-circle" />
 						</ClayButton>

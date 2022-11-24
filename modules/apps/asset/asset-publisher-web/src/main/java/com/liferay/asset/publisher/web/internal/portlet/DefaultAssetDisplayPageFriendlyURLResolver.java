@@ -418,17 +418,18 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 
 		JournalArticle journalArticle = null;
 
-		String[] versionIds = params.get("version");
-
-		if (ArrayUtil.isNotEmpty(versionIds) && !_isDefaultUser()) {
-			long id = GetterUtil.getLong(versionIds[0]);
-
-			journalArticle = _journalArticleLocalService.fetchArticle(id);
-		}
-
 		String normalizedUrlTitle =
 			_friendlyURLNormalizer.normalizeWithEncoding(
 				_getFullURLTitle(friendlyURL));
+
+		String[] versions = params.get("version");
+
+		if (ArrayUtil.isNotEmpty(versions) && !_isDefaultUser()) {
+			double version = GetterUtil.getDouble(versions[0]);
+
+			journalArticle = _journalArticleLocalService.fetchArticleByUrlTitle(
+				groupId, normalizedUrlTitle, version);
+		}
 
 		if (journalArticle == null) {
 			journalArticle =
@@ -524,7 +525,7 @@ public class DefaultAssetDisplayPageFriendlyURLResolver
 		_getLayoutDisplayPageObjectProvider(JournalArticle journalArticle) {
 
 		LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
-			layoutDisplayPageProviderTracker.
+			layoutDisplayPageProviderRegistry.
 				getLayoutDisplayPageProviderByClassName(
 					JournalArticle.class.getName());
 

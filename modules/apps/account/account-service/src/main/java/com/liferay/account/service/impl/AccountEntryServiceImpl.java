@@ -103,7 +103,7 @@ public class AccountEntryServiceImpl extends AccountEntryServiceBaseImpl {
 
 		AccountEntry accountEntry =
 			accountEntryLocalService.fetchAccountEntryByExternalReferenceCode(
-				permissionChecker.getCompanyId(), externalReferenceCode);
+				externalReferenceCode, permissionChecker.getCompanyId());
 
 		long accountEntryId = 0;
 
@@ -174,6 +174,24 @@ public class AccountEntryServiceImpl extends AccountEntryServiceBaseImpl {
 			getPermissionChecker(), accountEntryId, ActionKeys.VIEW);
 
 		return accountEntryLocalService.fetchAccountEntry(accountEntryId);
+	}
+
+	@Override
+	public AccountEntry fetchAccountEntryByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		AccountEntry accountEntry =
+			accountEntryLocalService.fetchAccountEntryByExternalReferenceCode(
+				externalReferenceCode, companyId);
+
+		if (accountEntry != null) {
+			_accountEntryModelResourcePermission.check(
+				getPermissionChecker(), accountEntry.getAccountEntryId(),
+				ActionKeys.VIEW);
+		}
+
+		return accountEntry;
 	}
 
 	@Override

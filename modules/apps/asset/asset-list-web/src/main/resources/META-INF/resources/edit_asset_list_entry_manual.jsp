@@ -87,7 +87,16 @@ AssetListEntry assetListEntry = assetListDisplayContext.getAssetListEntry();
 						<clay:content-col
 							cssClass="inline-item-after"
 						>
-							<liferay-util:include page="/asset_list_entry_variation_action.jsp" servletContext="<%= application %>" />
+
+							<%
+							AssetListEntryVariationActionDropdownItemsProvider assetListEntryVariationActionDropdownItemsProvider = new AssetListEntryVariationActionDropdownItemsProvider(editAssetListDisplayContext, liferayPortletRequest, liferayPortletResponse);
+							%>
+
+							<clay:dropdown-actions
+								aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
+								dropdownItems="<%= assetListEntryVariationActionDropdownItemsProvider.getActionDropdownItems() %>"
+								propsTransformer="js/AssetListEntryVariationDefaultPropsTransformer"
+							/>
 						</clay:content-col>
 					</clay:content-row>
 				</h3>
@@ -110,33 +119,13 @@ AssetListEntry assetListEntry = assetListDisplayContext.getAssetListEntry();
 							<clay:content-col
 								containerElement="span"
 							>
-								<liferay-ui:icon-menu
-									direction="right"
-									message="select"
-									showArrow="<%= false %>"
-									showWhenSingleIcon="<%= true %>"
-									triggerCssClass="btn-sm"
-								>
-
-									<%
-									Map<String, Map<String, Object>> manualAddIconDataMap = editAssetListDisplayContext.getManualAddIconDataMap();
-
-									for (Map.Entry<String, Map<String, Object>> entry : manualAddIconDataMap.entrySet()) {
-									%>
-
-										<liferay-ui:icon
-											cssClass="asset-selector"
-											data="<%= entry.getValue() %>"
-											id="<%= themeDisplay.getScopeGroupId() + HtmlUtil.getAUICompatibleId(entry.getKey()) %>"
-											message="<%= HtmlUtil.escape(entry.getKey()) %>"
-											url="javascript:void(0);"
-										/>
-
-									<%
-									}
-									%>
-
-								</liferay-ui:icon-menu>
+								<clay:dropdown-menu
+									aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
+									cssClass="btn btn-secondary btn-sm"
+									dropdownItems="<%= editAssetListDisplayContext.getActionDropdownItems() %>"
+									label='<%= LanguageUtil.get(request, "select") %>'
+									propsTransformer="js/EditAssetListEntryManualDefaultPropsTransformer"
+								/>
 							</clay:content-col>
 						</c:if>
 					</clay:content-row>
@@ -213,54 +202,3 @@ AssetListEntry assetListEntry = assetListDisplayContext.getAssetListEntry();
 		</liferay-frontend:edit-form>
 	</c:otherwise>
 </c:choose>
-
-<aui:script require="frontend-js-web/index as frontendJsWeb">
-	var {delegate} = frontendJsWeb;
-
-	var delegateHandler = delegate(
-		document.body,
-		'click',
-		'.asset-selector a',
-		(event) => {
-			event.preventDefault();
-
-			var delegateTarget = event.delegateTarget;
-
-			Liferay.Util.openSelectionModal({
-				customSelectEvent: true,
-				multiple: true,
-				onSelect: function (data) {
-					if (data.value && data.value.length) {
-						const selectedItems = data.value;
-						var assetEntryIds = [];
-
-						Array.prototype.forEach.call(
-							selectedItems,
-							(selectedItem) => {
-								const assetEntry = JSON.parse(selectedItem);
-								assetEntryIds.push(assetEntry.assetEntryId);
-							}
-						);
-
-						Liferay.Util.postForm(document.<portlet:namespace />fm, {
-							data: {
-								assetEntryIds: assetEntryIds.join(','),
-							},
-						});
-					}
-				},
-				selectEventName: '<portlet:namespace />selectAsset',
-				title: delegateTarget.dataset.title,
-				url: delegateTarget.dataset.href,
-			});
-		}
-	);
-
-	var onDestroyPortlet = function () {
-		delegateHandler.dispose();
-
-		Liferay.detach('destroyPortlet', onDestroyPortlet);
-	};
-
-	Liferay.on('destroyPortlet', onDestroyPortlet);
-</aui:script>

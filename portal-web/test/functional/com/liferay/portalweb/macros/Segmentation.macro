@@ -78,7 +78,7 @@ definition {
 	}
 
 	macro closeSegmentationDisabledWarning {
-		Click(locator1 = "Icon#CLOSE");
+		Click(locator1 = "Icon#CLOSE_ALERT");
 	}
 
 	macro createExperienceWithSegment {
@@ -109,6 +109,10 @@ definition {
 
 	macro deleteProperty {
 		Click(locator1 = "Icon#REMOVE");
+	}
+
+	macro deletePropertyElementNotExisting {
+		Click(locator1 = "Segmentation#DELETE_SEGMENT_PROPERTY_BUTTON");
 	}
 
 	macro deleteSegment {

@@ -49,7 +49,11 @@ definition {
 			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
 		}
 
-		JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea1@liferay.com");
+		JSONUser.tearDownNonAdminUsers();
+
+		JSONRole.deleteTestRoles();
+
+		JSONOrganization.tearDownOrganizations();
 	}
 
 	@description = "LPS-147302 Given there are several users segmented, one per segment
@@ -62,55 +66,32 @@ definition {
 		property portal.acceptance = "true";
 
 		task ("Create 2 more users") {
-			JSONUser.addUser(
-				jobTitle = "Test Engineer2",
-				userEmailAddress = "userea2@liferay.com",
-				userFirstName = "userfn2",
-				userLastName = "userln2",
-				userScreenName = "usersn2");
+			for (var userNumb : list "2,3") {
+				JSONUser.addUser(
+					userEmailAddress = "userea${userNumb}@liferay.com",
+					userFirstName = "userfn${userNumb}",
+					userLastName = "userln${userNumb}",
+					userScreenName = "usersn${userNumb}");
 
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				requireReset = "false",
-				userEmailAddress = "userea2@liferay.com");
-
-			JSONUser.addUser(
-				jobTitle = "Test Engineer3",
-				userEmailAddress = "userea3@liferay.com",
-				userFirstName = "userfn3",
-				userLastName = "userln3",
-				userScreenName = "usersn3");
-
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				requireReset = "false",
-				userEmailAddress = "userea3@liferay.com");
+				JSONUser.setFirstPassword(
+					agreeToTermsAndAnswerReminderQuery = "true",
+					requireReset = "false",
+					userEmailAddress = "userea${userNumb}@liferay.com");
+			}
 		}
 
 		task ("Create a segment for each user") {
-			JSONSegmentsentry.addSegment(
-				fieldName = "First Name",
-				groupName = "Test Site Name",
-				operator = "equals",
-				segmentName = "Segment With User1",
-				text = "userfn1");
-
-			JSONSegmentsentry.addSegment(
-				fieldName = "First Name",
-				groupName = "Test Site Name",
-				operator = "equals",
-				segmentName = "Segment With User2",
-				text = "userfn2");
-
-			JSONSegmentsentry.addSegment(
-				fieldName = "First Name",
-				groupName = "Test Site Name",
-				operator = "equals",
-				segmentName = "Segment With User3",
-				text = "userfn3");
+			for (var sgementNumb : list "1,2,3") {
+				JSONSegmentsentry.addSegment(
+					fieldName = "First Name",
+					groupName = "Test Site Name",
+					operator = "equals",
+					segmentName = "Segment With User${sgementNumb}",
+					text = "userfn${sgementNumb}");
+			}
 		}
 
-		task ("Create an experience for each segment in the Content Page") {
+		task ("Edit the default experience") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
 			ContentPages.gotoPageEditor();
@@ -123,16 +104,12 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text",
 				text = "Default");
+		}
 
+		task ("Create and edit the first experience") {
 			PageEditor.addExperience(
 				experienceName = "Experience User 1",
 				segmentName = "Segment With User1");
-
-			Button.clickPublish();
-
-			ContentPages.gotoPageEditor();
-
-			PageEditor.changeExperience(newExperience = "Experience User 1");
 
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
@@ -140,20 +117,12 @@ definition {
 				text = "User 1");
 
 			PageEditor.prioritizeExperience(experienceName = "Experience User 1");
+		}
 
-			PageEditor.publish();
-
-			ContentPages.gotoPageEditor();
-
+		task ("Create and edit the second experience") {
 			PageEditor.addExperience(
 				experienceName = "Experience User 2",
 				segmentName = "Segment With User2");
-
-			Button.clickPublish();
-
-			ContentPages.gotoPageEditor();
-
-			PageEditor.changeExperience(newExperience = "Experience User 2");
 
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
@@ -161,20 +130,12 @@ definition {
 				text = "User 2");
 
 			PageEditor.prioritizeExperience(experienceName = "Experience User 2");
+		}
 
-			Button.clickPublish();
-
-			ContentPages.gotoPageEditor();
-
+		task ("Create and edit the third experience") {
 			PageEditor.addExperience(
 				experienceName = "Experience User 3",
 				segmentName = "Segment With User3");
-
-			Button.clickPublish();
-
-			ContentPages.gotoPageEditor();
-
-			PageEditor.changeExperience(newExperience = "Experience User 3");
 
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
@@ -187,44 +148,18 @@ definition {
 		}
 
 		task ("Login with each user and check the correct experiece is shown") {
-			User.logoutAndLoginPG(
-				freeLogin = "true",
-				userLoginEmailAddress = "userea1@liferay.com",
-				userLoginFullName = "userfn1 userln1");
+			for (var userNumb : list "1,2,3") {
+				User.logoutAndLoginPG(
+					freeLogin = "true",
+					userLoginEmailAddress = "userea${userNumb}@liferay.com",
+					userLoginFullName = "userfn${userNumb} userln${userNumb}");
 
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
+				Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 
-			AssertTextEquals(
-				locator1 = "Experience#FRAGMENT_HEADING",
-				value1 = "User 1");
-
-			User.logoutAndLoginPG(
-				freeLogin = "true",
-				userLoginEmailAddress = "userea2@liferay.com",
-				userLoginFullName = "userfn2 userln2");
-
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-			AssertTextEquals(
-				locator1 = "Experience#FRAGMENT_HEADING",
-				value1 = "User 2");
-
-			User.logoutAndLoginPG(
-				freeLogin = "true",
-				userLoginEmailAddress = "userea3@liferay.com",
-				userLoginFullName = "userfn3 userln3");
-
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-			AssertTextEquals(
-				locator1 = "Experience#FRAGMENT_HEADING",
-				value1 = "User 3");
-		}
-
-		task ("Delete users created") {
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea2@liferay.com");
-
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea3@liferay.com");
+				AssertTextEquals(
+					locator1 = "Experience#FRAGMENT_HEADING",
+					value1 = "User ${userNumb}");
+			}
 		}
 	}
 
@@ -248,15 +183,9 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text",
 				text = "Default");
-
-			PageEditor.publish();
 		}
 
 		task ("Add an Experience for that page") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
 			PageEditor.addExperience(
 				experienceName = "NewAnyoneExperience",
 				segmentName = "Anyone");
@@ -329,12 +258,6 @@ definition {
 			AssertTextEquals(
 				locator1 = "PageEditor#EXPERIENCE_NAME",
 				value1 = "");
-
-			AssertClick(
-				locator1 = "Button#CANCEL",
-				value1 = "Cancel");
-
-			PageEditor.publish();
 		}
 	}
 
@@ -345,7 +268,6 @@ definition {
 
 		task ("Add user via JSONWS") {
 			JSONUser.addUser(
-				jobTitle = "Test Engineer2",
 				userEmailAddress = "userea2@liferay.com",
 				userFirstName = "userfn2",
 				userLastName = "userln2",
@@ -355,45 +277,32 @@ definition {
 				agreeToTermsAndAnswerReminderQuery = "true",
 				requireReset = "false",
 				userEmailAddress = "userea2@liferay.com");
-
-			JSONRole.assignRoleToUser(
-				roleTitle = "Administrator",
-				userEmailAddress = "userea2@liferay.com");
 		}
 
 		task ("Add two segments via JSONWS") {
-			for (var num : list "1,2") {
-				JSONSegmentsentry.addSegment(
-					fieldName = "Last Name",
-					groupName = "Test Site Name",
-					operator = "equals",
-					segmentName = "Segment With User${num}",
-					text = "userln${num}");
-			}
+			var segmentId1 = JSONSegmentsentry.addSegment(
+				fieldName = "Last Name",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Segment With User1",
+				text = "userln1");
+			var segmentId2 = JSONSegmentsentry.addSegment(
+				fieldName = "Last Name",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Segment With User2",
+				text = "userln2");
 		}
 
-		task ("Add a segment with two conditions") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Segments");
-
-			Segmentation.addProperties(propertyOption = "Segment");
-
-			Segmentation.fillProperty(selectLink = "Segment With User1");
-
-			Segmentation.addProperties(propertyOption = "Segment");
-
-			Segmentation.fillProperty(
-				indexNumber = "2",
-				selectLink = "Segment With User2");
-
-			Segmentation.changeCriterionConjunction(criterionConjunctionItem = "Or");
-
-			Segmentation.fillTitle(titleField = "Segment Title");
-
-			Button.clickSave();
+		task ("Add a segment with two conditions via JSONWS") {
+			JSONSegmentsentry.addSegment(
+				conditionType = "Segments",
+				fieldName = "Segment",
+				firstSegmentId = "${segmentId1}",
+				groupName = "Test Site Name",
+				operator = "Or",
+				secondSegmentId = "${segmentId2}",
+				segmentName = "Segment Title");
 		}
 
 		task ("Navigate to page editor") {
@@ -441,10 +350,6 @@ definition {
 					value1 = "User1 and User2 will see this heading");
 			}
 		}
-
-		task ("Delete userea2 via JSONWS") {
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea2@liferay.com");
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Country criteria"
@@ -465,21 +370,13 @@ definition {
 		}
 
 		task ("Create a segment with a country criteria") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Country");
-
-			Segmentation.fillTitle(titleField = "Org with Country");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(optionsValue = "China");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Country",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Org with Country",
+				text = "china");
 		}
 
 		task ("Navigate to page editor") {
@@ -498,17 +395,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Country",
 				segmentName = "Org with Country");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Country");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -535,10 +424,6 @@ definition {
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
 		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Date modified criteria"
@@ -557,19 +442,15 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
+			var todayUTCtime = DateUtil.getFormattedCurrentDate("yyyy-MM-dd'T'HH:mm:ss.mmm'Z'");
 
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Date Modified");
-
-			Segmentation.fillTitle(titleField = "Org with Date Modified");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Not Equals");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				date = "${todayUTCtime}",
+				fieldName = "Date Modified",
+				groupName = "Test Site Name",
+				operator = "not equals",
+				segmentName = "Org with Date Modified");
 		}
 
 		task ("Naviagte to edit page") {
@@ -588,17 +469,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Modified Date",
 				segmentName = "Org with Date Modified");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Modified Date");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -625,10 +498,6 @@ definition {
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
 		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Hierarchy path criteria"
@@ -647,21 +516,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Hierarchy Path");
-
-			Segmentation.fillTitle(titleField = "Org with Hierarchy Path");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(criterionValue = "organization Name");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Hierarchy Path",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Org with Hierarchy Path",
+				text = "organization Name");
 		}
 
 		task ("Naviagte to edit page") {
@@ -680,17 +541,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Hierarchy Path",
 				segmentName = "Org with Hierarchy Path");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Hierarchy Path");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -717,10 +570,6 @@ definition {
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
 		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Name criteria"
@@ -739,21 +588,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Name");
-
-			Segmentation.fillTitle(titleField = "Org with Name");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(criterionValue = "organization Name");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Name",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Org with Name",
+				text = "organization Name");
 		}
 
 		task ("Naviagte to edit page") {
@@ -772,17 +613,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Name",
 				segmentName = "Org with Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Name");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -809,10 +642,6 @@ definition {
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
 		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Organization criteria"
@@ -831,21 +660,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Organization");
-
-			Segmentation.fillTitle(titleField = "Users In A Specific Org");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(selectCheckbox = "organization Name");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Organization",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Users In A Specific Org",
+				selectedOption = "organization Name");
 		}
 
 		task ("Naviagte to edit page") {
@@ -864,17 +685,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Users In A Specific Org",
 				segmentName = "Users In A Specific Org");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Users In A Specific Org");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -900,10 +713,6 @@ definition {
 			AssertTextEquals(
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
-		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 		}
 	}
 
@@ -936,21 +745,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Parent Organization");
-
-			Segmentation.fillTitle(titleField = "Org with Parent");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(selectCheckbox = "organization Name");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Parent Organization",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Org with Parent",
+				selectedOption = "organization Name");
 		}
 
 		task ("Naviagte to edit page") {
@@ -969,17 +770,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Parent Organization",
 				segmentName = "Org with Parent");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Parent Organization");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1006,12 +799,6 @@ definition {
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
 		}
-
-		task ("Delete organizations via JSONWS") {
-			for (var organization : list "organization Name,Suborganization Name") {
-				JSONOrganization.deleteOrganizationByName(organizationName = "${organization}");
-			}
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Region criteria"
@@ -1034,21 +821,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Region");
-
-			Segmentation.fillTitle(titleField = "Org with Region");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(optionsValue = "United States - Utah");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Region",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Org with Region",
+				text = "utah");
 		}
 
 		task ("Naviagte to edit page") {
@@ -1067,17 +846,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Region",
 				segmentName = "Org with Region");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Region");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1109,10 +880,6 @@ definition {
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
 		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
-		}
 	}
 
 	@description = "LPS-130266: Validate if it's posible to create a experience using a segment based on Organization > Tag criteria"
@@ -1141,21 +908,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Tag");
-
-			Segmentation.fillTitle(titleField = "Org with Tag");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Equals");
-
-			Segmentation.fillProperty(selectLink = "tagname");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Tag",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "Org with Tag",
+				selectedOption = "tagname");
 		}
 
 		task ("Naviagte to edit page") {
@@ -1174,17 +933,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Tag",
 				segmentName = "Org with Tag");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Tag");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1210,10 +961,6 @@ definition {
 			AssertTextEquals(
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
-		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "organization Name");
 		}
 	}
 
@@ -1262,21 +1009,13 @@ definition {
 		}
 
 		task ("Add an organization Segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.gotoSidebar(fieldType = "Organization");
-
-			Segmentation.addProperties(propertyOption = "Type");
-
-			Segmentation.fillTitle(titleField = "Org with Type");
-
-			Segmentation.changeCriterionInput(criterionInputOption = "Contains");
-
-			Segmentation.fillProperty(criterionValue = "t");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				conditionType = "Organization",
+				fieldName = "Type",
+				groupName = "Test Site Name",
+				operator = "contains",
+				segmentName = "Org with Type",
+				text = "t");
 		}
 
 		task ("Naviagte to edit page") {
@@ -1295,17 +1034,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Experience For Org with Type",
 				segmentName = "Org with Type");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Experience For Org with Type");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1331,10 +1062,6 @@ definition {
 			AssertTextEquals(
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Org users will see this heading");
-		}
-
-		task ("Delete organization via JSONWS") {
-			JSONOrganization.deleteOrganizationByName(organizationName = "United States");
 		}
 	}
 
@@ -1380,17 +1107,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "NewBrowserExperience",
 				segmentName = "Session Browser Segment");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "NewBrowserExperience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1466,17 +1185,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionCookiesSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1501,10 +1212,6 @@ definition {
 			AssertTextEquals(
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "This is a new experience for you");
-		}
-
-		task ("Delete user via JSONWS") {
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
 		}
 	}
 
@@ -1539,17 +1246,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionDeviceBrandSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1608,17 +1307,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionDeviceModelSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1677,17 +1368,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionDeviceScreenResolutionHeightSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1746,17 +1429,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionDeviceScreenResolutionWidthSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1856,19 +1531,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "HostnameSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			Navigator.openSpecificURL(url = "http://www.able.com:8080");
-
-			Navigator._gotoPage(pageName = "Experience Content Page");
-
-			ContentPages.gotoPageEditor();
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -1954,17 +1619,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "IP Geocoder Country Experience",
 				segmentName = "IP Geocoder Country Segment");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "IP Geocoder Country Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2019,17 +1676,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "LastSignInDateSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2090,17 +1739,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "LocalDateSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2159,17 +1800,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "ReferrerURLSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2236,17 +1869,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionRequestParametersSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2316,17 +1941,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "NewSignedInExperience",
 				segmentName = "Session Signed In Segment");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "NewSignedInExperience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2383,17 +2000,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionURLSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2452,17 +2061,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "SessionUserAgentSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2646,17 +2247,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Segment Title");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2714,17 +2307,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Segment Title");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2782,17 +2367,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Segment Title");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2850,17 +2427,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Segment Title");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -2955,7 +2524,7 @@ definition {
 
 		task ("Assign role to user") {
 			JSONRole.assignRoleToUser(
-				roleTitle = "Administrator",
+				roleTitle = "Power User",
 				userEmailAddress = "userea1@liferay.com");
 		}
 
@@ -2965,7 +2534,7 @@ definition {
 				groupName = "Test Site Name",
 				operator = "equals",
 				segmentName = "Segment Title",
-				selectedOption = "Administrator");
+				selectedOption = "Power User");
 		}
 
 		task ("Naviagte to edit page") {
@@ -2984,17 +2553,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Segment Title");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3052,17 +2613,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Segment Title");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3104,12 +2657,12 @@ definition {
 
 		task ("Create and assign site role") {
 			JSONRole.addSiteRole(
-				roleKey = "Site Role Name",
-				roleTitle = "Site Role Name");
+				roleKey = "Site Role Name Test",
+				roleTitle = "Site Role Name Test");
 
 			JSONGroup.assignGroupRoleToUser(
 				groupName = "Test Site Name",
-				roleTitle = "Site Role Name",
+				roleTitle = "Site Role Name Test",
 				userEmailAddress = "userea1@liferay.com");
 
 			SearchAdministration.executeReindex();
@@ -3121,7 +2674,7 @@ definition {
 				groupName = "Test Site Name",
 				operator = "equals",
 				segmentName = "UserSiteOrganizationRoleSegment Name",
-				selectedOption = "Site Role Name");
+				selectedOption = "Site Role Name Test");
 		}
 
 		task ("Naviagte to edit page") {
@@ -3140,17 +2693,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "UserSiteOrganizationRoleSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3214,17 +2759,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "UserSiteSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3267,17 +2804,12 @@ definition {
 		}
 
 		task ("Create an user segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.addProperties(propertyOption = "Tag");
-
-			Segmentation.fillProperty(selectLink = "tagname");
-
-			Segmentation.fillTitle(titleField = "UserTagSegment Name");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				fieldName = "Tag",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "UserTagSegment Name",
+				selectedOption = "tagname");
 		}
 
 		task ("Naviagte to edit page") {
@@ -3296,17 +2828,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "UserTagSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3345,32 +2869,25 @@ definition {
 				userEmailAddress = "userea1@liferay.com");
 		}
 
-		task ("Create a Team") {
-			Site.openSiteTeamsAdmin(siteURLKey = "test-site-name");
-
-			Team.addCP(
+		task ("Add team and assign to the user") {
+			JSONTeam.addTeam(
+				siteName = "Test Site Name",
 				teamDescription = "Site Team Description",
 				teamName = "Site Team Name");
-		}
 
-		task ("Assign user to team") {
-			Team.assignMembersCP(
+			JSONTeam.addUserToTeam(
+				siteName = "Test Site Name",
 				teamName = "Site Team Name",
-				userScreenName = "usersn1");
+				userEmailAddress = "userea1@liferay.com");
 		}
 
 		task ("Create an user segment") {
-			Segmentation.openSegmentsAdmin(siteURLKey = "test-site-name");
-
-			LexiconEntry.gotoAdd();
-
-			Segmentation.addProperties(propertyOption = "Team");
-
-			Segmentation.fillProperty(selectLink = "Site Team Name");
-
-			Segmentation.fillTitle(titleField = "UserTeamSegment Name");
-
-			Button.clickSave();
+			JSONSegmentsentry.addSegment(
+				fieldName = "Team",
+				groupName = "Test Site Name",
+				operator = "equals",
+				segmentName = "UserTeamSegment Name",
+				selectedOption = "Site Team Name");
 		}
 
 		task ("Naviagte to edit page") {
@@ -3389,17 +2906,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "UserTeamSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3472,17 +2981,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "UserUserGroupSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3540,17 +3041,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "UserUserSegment Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "New Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3614,44 +3107,22 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Screen Name Experience",
 				segmentName = "Segment Screen Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Edit the experience created and leave it below the Default experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Screen Name Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
 				text = "This is a new Screen Name experience for you");
-
-			PageEditor.publish();
 		}
 
 		task ("Go to the Content Page and add a new experience for the second segment") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
 			PageEditor.addExperience(
 				experienceName = "Email Address Experience",
 				segmentName = "Segment Email Address");
-
-			Button.clickPublish();
 		}
 
 		task ("Edit the experience created and leave it below the Default experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Email Address Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3709,46 +3180,24 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "Screen Name Experience",
 				segmentName = "Segment Screen Name");
-
-			Button.clickPublish();
 		}
 
 		task ("Edit the experience created and prioritize it over the Default experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Screen Name Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
 				text = "This is a new Screen Name experience for you");
 
 			PageEditor.prioritizeExperience(experienceName = "Screen Name Experience");
-
-			PageEditor.publish();
 		}
 
 		task ("Go to the Content Page and add a new experience for the second segment") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
 			PageEditor.addExperience(
 				experienceName = "Email Address Experience",
 				segmentName = "Segment Email Address");
-
-			Button.clickPublish();
 		}
 
 		task ("Edit the experience created and prioritize it over the Default experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "Email Address Experience");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -3993,8 +3442,6 @@ definition {
 			PageEditor.deleteExperience(experienceName = "Name Experience");
 
 			AssertElementNotPresent(locator1 = "PageEditor#EXPERIENCE_DELETE_BUTTON");
-
-			PageEditor.publish();
 		}
 	}
 
@@ -4447,17 +3894,9 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "NewExp1",
 				segmentName = "Anyone");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the first experience created") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "NewExp1");
-
 			PageEditor.editFragmentText(
 				fragmentName = "Heading",
 				id = "element-text",
@@ -4466,17 +3905,9 @@ definition {
 
 		task ("Priotitize the first experience created") {
 			PageEditor.prioritizeExperience(experienceName = "NewExp1");
-
-			Button.clickPublish();
 		}
 
 		task ("Duplicate the first experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
-			PageEditor.changeExperience(newExperience = "NewExp1");
-
 			PageEditor.duplicateExperience(experienceName = "NewExp1");
 
 			Button.clickPublish();
@@ -4507,6 +3938,20 @@ definition {
 				value1 = "Exp1");
 
 			PageEditor.publish();
+		}
+
+		task ("Check that the duplicated experience is bellow default experience") {
+			PageEditor.openExperienceMenu();
+
+			AssertTextEquals(
+				index = "2",
+				locator1 = "PageEditor#EXPERIENCE_TITLE_INDEX",
+				value1 = "Default");
+
+			AssertTextEquals(
+				index = "3",
+				locator1 = "PageEditor#EXPERIENCE_TITLE_INDEX",
+				value1 = "Copy of NewExp1");
 		}
 	}
 
@@ -4605,40 +4050,26 @@ definition {
 	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions and segments are available and interact with the New Segment by New Experience"
 	@priority = "3"
 	test ExperienceDropdownAddNewSegment {
-		task ("Create an User") {
-			JSONUser.addUser(
-				userEmailAddress = "userea@liferay.com",
-				userFirstName = "userfn",
-				userLastName = "userln",
-				userScreenName = "usersn");
-
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				newPassword = "test",
-				requireReset = "false",
-				userEmailAddress = "userea@liferay.com");
-		}
-
 		task ("Create a Role") {
 			JSONRole.addRegularRole(
-				roleKey = "Experiences Test Role",
-				roleTitle = "Experiences Test Role");
+				roleKey = "Experiences Test Role Test",
+				roleTitle = "Experiences Test Role Test");
 
 			JSONRole.assignRoleToUser(
-				roleTitle = "Experiences Test Role",
-				userEmailAddress = "userea@liferay.com");
+				roleTitle = "Experiences Test Role Test",
+				userEmailAddress = "userea1@liferay.com");
 		}
 
 		task ("Set permissions for this role") {
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "UPDATE",
 				resourceName = "com.liferay.portal.kernel.model.Layout",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "MANAGE_SEGMENTS_ENTRIES",
 				resourceName = "com.liferay.segments",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 		}
 
 		task ("Create a Segment") {
@@ -4652,8 +4083,8 @@ definition {
 
 		task ("Login with user created") {
 			User.logoutAndLoginPG(
-				userLoginEmailAddress = "userea@liferay.com",
-				userLoginFullName = "userfn userln");
+				userLoginEmailAddress = "userea1@liferay.com",
+				userLoginFullName = "userfn1 userln1");
 		}
 
 		task ("Go to Content Page") {
@@ -4702,57 +4133,31 @@ definition {
 				locator1 = "PageEditor#EXPERIENCE_SELECT_SEGMENT",
 				value1 = "Segment First Name Test");
 		}
-
-		task ("Login with Test user to allow teardown") {
-			User.logoutAndLoginPG(
-				userLoginEmailAddress = "test@liferay.com",
-				userLoginFullName = "Test Test");
-		}
-
-		task ("Delete Role and User created") {
-			JSONRole.deleteRole(roleTitle = "Experiences Test Role");
-
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
-		}
 	}
 
 	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions but no segments are available and interact with the New Segment by New Experience"
 	@priority = "3"
 	test ExperienceDropdownAddNewSegmentButton {
-		task ("Create an User") {
-			JSONUser.addUser(
-				userEmailAddress = "userea@liferay.com",
-				userFirstName = "userfn",
-				userLastName = "userln",
-				userScreenName = "usersn");
-
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				newPassword = "test",
-				requireReset = "false",
-				userEmailAddress = "userea@liferay.com");
-		}
-
 		task ("Create a Role") {
 			JSONRole.addRegularRole(
-				roleKey = "Experiences Test Role",
-				roleTitle = "Experiences Test Role");
+				roleKey = "Experiences Test Role Test",
+				roleTitle = "Experiences Test Role Test");
 
 			JSONRole.assignRoleToUser(
-				roleTitle = "Experiences Test Role",
-				userEmailAddress = "userea@liferay.com");
+				roleTitle = "Experiences Test Role Test",
+				userEmailAddress = "userea1@liferay.com");
 		}
 
 		task ("Set permissions for this role") {
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "UPDATE",
 				resourceName = "com.liferay.portal.kernel.model.Layout",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "MANAGE_SEGMENTS_ENTRIES",
 				resourceName = "com.liferay.segments",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 		}
 
 		task ("Create a Segment") {
@@ -4766,8 +4171,8 @@ definition {
 
 		task ("Login with user created") {
 			User.logoutAndLoginPG(
-				userLoginEmailAddress = "userea@liferay.com",
-				userLoginFullName = "userfn userln");
+				userLoginEmailAddress = "userea1@liferay.com",
+				userLoginFullName = "userfn1 userln1");
 		}
 
 		task ("Go to Content Page") {
@@ -4801,18 +4206,6 @@ definition {
 				locator1 = "Button#ANY");
 
 			AssertVisible(locator1 = "Segmentation#PROPERTIES_SEARCH");
-		}
-
-		task ("Login with Test user to allow teardown") {
-			User.logoutAndLoginPG(
-				userLoginEmailAddress = "test@liferay.com",
-				userLoginFullName = "Test Test");
-		}
-
-		task ("Delete Role and User created") {
-			JSONRole.deleteRole(roleTitle = "Experiences Test Role");
-
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
 		}
 	}
 
@@ -4904,35 +4297,21 @@ definition {
 	@ignore = "true"
 	@priority = "3"
 	test ExperienceDropdownWithNoSegmentsUserWithNoPermisisons {
-		task ("Create an User") {
-			JSONUser.addUser(
-				userEmailAddress = "userea@liferay.com",
-				userFirstName = "userfn",
-				userLastName = "userln",
-				userScreenName = "usersn");
-
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				newPassword = "test",
-				requireReset = "false",
-				userEmailAddress = "userea@liferay.com");
-		}
-
 		task ("Create a Role") {
 			JSONRole.addRegularRole(
-				roleKey = "Experiences Test Role",
-				roleTitle = "Experiences Test Role");
+				roleKey = "Experiences Test Role Test",
+				roleTitle = "Experiences Test Role Test");
 
 			JSONRole.assignRoleToUser(
-				roleTitle = "Experiences Test Role",
-				userEmailAddress = "userea@liferay.com");
+				roleTitle = "Experiences Test Role Test",
+				userEmailAddress = "userea1@liferay.com");
 		}
 
 		task ("Set permissions for this role") {
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "VIEW_SITE_ADMINISTRATION",
 				resourceName = "com.liferay.portal.kernel.model.Group",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 		}
 
 		task ("Create a Segment") {
@@ -4946,7 +4325,7 @@ definition {
 
 		task ("Login with user created") {
 			User.logoutAndLoginPG(
-				userLoginEmailAddress = "userea@liferay.com",
+				userLoginEmailAddress = "userea1@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
 
@@ -4981,45 +4360,31 @@ definition {
 	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when the user has permissions but no segments are available and interact with the New Experience button"
 	@priority = "3"
 	test ExperienceDropdownWithNoSegmentsUserWithPermisisons {
-		task ("Create an User") {
-			JSONUser.addUser(
-				userEmailAddress = "userea@liferay.com",
-				userFirstName = "userfn",
-				userLastName = "userln",
-				userScreenName = "usersn");
-
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				newPassword = "test",
-				requireReset = "false",
-				userEmailAddress = "userea@liferay.com");
-		}
-
 		task ("Create a Role") {
 			JSONRole.addRegularRole(
-				roleKey = "Experiences Test Role",
-				roleTitle = "Experiences Test Role");
+				roleKey = "Experiences Test Role Test",
+				roleTitle = "Experiences Test Role Test");
 
 			JSONRole.assignRoleToUser(
-				roleTitle = "Experiences Test Role",
-				userEmailAddress = "userea@liferay.com");
+				roleTitle = "Experiences Test Role Test",
+				userEmailAddress = "userea1@liferay.com");
 		}
 
 		task ("Set permissions for this role") {
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "UPDATE",
 				resourceName = "com.liferay.portal.kernel.model.Layout",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "MANAGE_SEGMENTS_ENTRIES",
 				resourceName = "com.liferay.segments",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 		}
 
 		task ("Login with user created") {
 			User.logoutAndLoginPG(
-				userLoginEmailAddress = "userea@liferay.com",
+				userLoginEmailAddress = "userea1@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
 
@@ -5051,52 +4416,26 @@ definition {
 
 			AssertVisible(locator1 = "Segmentation#PROPERTIES_SEARCH");
 		}
-
-		task ("Login with Test user to allow teardown") {
-			User.logoutAndLoginPG(
-				userLoginEmailAddress = "test@liferay.com",
-				userLoginFullName = "Test Test");
-		}
-
-		task ("Delete Role and User created") {
-			JSONRole.deleteRole(roleTitle = "Experiences Test Role");
-
-			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
-		}
 	}
 
 	@description = "LPS-90588: Validate the interaction with how the user interacts with the Experiences Dropdown, when segments available but the user has no permissions"
 	@priority = "3"
 	test ExperienceDropdownWithSegmentsUserWithNoPermisisons {
-		task ("Create an User") {
-			JSONUser.addUser(
-				userEmailAddress = "userea@liferay.com",
-				userFirstName = "userfn",
-				userLastName = "userln",
-				userScreenName = "usersn");
-
-			JSONUser.setFirstPassword(
-				agreeToTermsAndAnswerReminderQuery = "true",
-				newPassword = "test",
-				requireReset = "false",
-				userEmailAddress = "userea@liferay.com");
-		}
-
 		task ("Create a Role") {
 			JSONRole.addRegularRole(
-				roleKey = "Experiences Test Role",
-				roleTitle = "Experiences Test Role");
+				roleKey = "Experiences Test Role Test",
+				roleTitle = "Experiences Test Role Test");
 
 			JSONRole.assignRoleToUser(
-				roleTitle = "Experiences Test Role",
-				userEmailAddress = "userea@liferay.com");
+				roleTitle = "Experiences Test Role Test",
+				userEmailAddress = "userea1@liferay.com");
 		}
 
 		task ("Set permissions for this role") {
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "UPDATE",
 				resourceName = "com.liferay.portal.kernel.model.Layout",
-				roleTitle = "Experiences Test Role");
+				roleTitle = "Experiences Test Role Test");
 		}
 
 		task ("Create a Segment") {
@@ -5110,7 +4449,7 @@ definition {
 
 		task ("Login with user created") {
 			User.logoutAndLoginPG(
-				userLoginEmailAddress = "userea@liferay.com",
+				userLoginEmailAddress = "userea1@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
 
@@ -5816,12 +5155,6 @@ definition {
 			PageEditor.addFragment(
 				collectionName = "Basic Components",
 				fragmentName = "Heading");
-
-			PageEditor.publish();
-
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "New Experience",

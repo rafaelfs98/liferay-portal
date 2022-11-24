@@ -13,6 +13,7 @@
  */
 
 import ClayButton from '@clayui/button';
+import {Text} from '@clayui/core';
 import ClayForm from '@clayui/form';
 import ClayLabel from '@clayui/label';
 import ClayManagementToolbar from '@clayui/management-toolbar';
@@ -20,6 +21,7 @@ import ClayMultiSelect from '@clayui/multi-select';
 import {
 	API,
 	Card,
+	CodeEditor,
 	Input,
 	InputLocalized,
 	RichTextLocalized,
@@ -30,21 +32,30 @@ import {
 import {fetch} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
+import {defaultLanguageId} from '../util/constants';
 import {Attachments} from './Attachments';
 import {DefinitionOfTerms} from './DefinitionOfTerms';
 
 import './EditNotificationTemplate.scss';
+import FreemarkerEditorSidebarContent from './FreemarkerEditorSidebarContent';
 
 const HEADERS = new Headers({
 	'Accept': 'application/json',
 	'Content-Type': 'application/json',
 });
 
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
-interface Item {
-	label?: string;
-	value?: string;
+interface LabelValueObject {
+	label: string;
+	value: string;
 }
+
+type editorTypeOptions = 'freemarker' | 'richText';
+
+interface EditorType extends LabelValueObject {
+	value: editorTypeOptions;
+}
+
+interface Item extends Partial<LabelValueObject> {}
 
 interface IProps {
 	baseResourceURL: string;
@@ -65,12 +76,26 @@ interface User {
 	givenName: string;
 }
 
+type TEmailRecipients = {
+	bcc: string;
+	cc: string;
+	from: string;
+	fromName: LocalizedValue<string>;
+	to: LocalizedValue<string>;
+};
+
+type TUserNotificationRecipients = {
+	[key in 'term' | 'userScreenName' | 'roleName']?: string;
+};
+
 export type TNotificationTemplate = {
 	attachmentObjectFieldIds: string[] | number[];
 	bcc: string;
 	body: LocalizedValue<string>;
 	cc: string;
 	description: string;
+	editorType: editorTypeOptions;
+	freemarkerTemplate: {lineCount?: number; template?: string};
 	from: string;
 	fromName: LocalizedValue<string>;
 	name: string;
@@ -85,17 +110,16 @@ export type TNotificationTemplate = {
 	type: string;
 };
 
-type TUserNotificationRecipients = {
-	[key in 'term' | 'userScreenName' | 'roleName']?: string;
-};
-
-type TEmailRecipients = {
-	bcc: string;
-	cc: string;
-	from: string;
-	fromName: LocalizedValue<string>;
-	to: LocalizedValue<string>;
-};
+const EDITOR_TYPES = [
+	{
+		label: Liferay.Language.get('freemarker-template'),
+		value: 'freeMarker',
+	},
+	{
+		label: Liferay.Language.get('rich-text'),
+		value: 'richText',
+	},
+];
 
 const RECIPIENT_OPTIONS = [
 	{
@@ -136,6 +160,10 @@ export default function EditNotificationTemplate({
 
 	const [toTerms, setToTerms] = useState<string>('');
 
+	const [objectDefinitions, setObjectDefinitions] = useState<
+		ObjectDefinition[]
+	>([]);
+
 	const validate = (values: any) => {
 		const errors: {
 			bcc?: string;
@@ -155,18 +183,15 @@ export default function EditNotificationTemplate({
 		}
 
 		if (
-			(notificationTemplateType === 'email' &&
-				!values.recipients[0].from) ||
-			(Liferay.FeatureFlags['LPS-162133'] && !values.from)
+			notificationTemplateType === 'email' &&
+			!values.recipients[0].from
 		) {
 			errors.from = Liferay.Language.get('required');
 		}
 
 		if (
-			(notificationTemplateType === 'email' &&
-				!values.recipients[0].fromName[defaultLanguageId]) ||
-			(Liferay.FeatureFlags['LPS-162133'] &&
-				!values.fromName[defaultLanguageId])
+			notificationTemplateType === 'email' &&
+			!values.recipients[0].fromName[defaultLanguageId]
 		) {
 			errors.fromName = Liferay.Language.get('required');
 		}
@@ -241,28 +266,14 @@ export default function EditNotificationTemplate({
 					? 'term'
 					: 'email',
 		}),
-		...(Liferay.FeatureFlags['LPS-162133'] && {
-			type: notificationTemplateType,
-		}),
 		body: {
 			[defaultLanguageId]: '',
 		},
 		description: '',
+		editorType: 'richText' as editorTypeOptions,
 		name: '',
 		objectDefinitionId: 0,
 		recipients: recipientInitialValue,
-
-		...(Liferay.FeatureFlags['LPS-162133'] && {
-			bcc: '',
-			cc: '',
-			from: '',
-			fromName: {
-				[defaultLanguageId]: '',
-			},
-			to: {
-				[defaultLanguageId]: '',
-			},
-		}),
 		subject: {
 			[defaultLanguageId]: '',
 		},
@@ -335,9 +346,13 @@ export default function EditNotificationTemplate({
 	};
 
 	useEffect(() => {
-		if (notificationTemplateId !== 0) {
-			API.getNotificationTemplate(notificationTemplateId).then(
-				({
+		const makeFetch = async () => {
+			const objectDefinitionsItems = await API.getObjectDefinitions();
+
+			setObjectDefinitions(objectDefinitionsItems);
+
+			if (notificationTemplateId !== 0) {
+				const {
 					attachmentObjectFieldIds,
 					body,
 					description,
@@ -347,37 +362,39 @@ export default function EditNotificationTemplate({
 					recipients,
 					subject,
 					type,
-				}) => {
-					setValues({
-						...values,
-						attachmentObjectFieldIds,
-						body,
-						description,
-						name,
-						objectDefinitionId,
-						recipientType,
-						recipients,
-						subject,
-						type,
-					});
+				} = await API.getNotificationTemplate(notificationTemplateId);
 
-					setTemplateTitle(name);
+				setValues({
+					...values,
+					attachmentObjectFieldIds,
+					body,
+					description,
+					name,
+					objectDefinitionId,
+					recipientType,
+					recipients,
+					subject,
+					type,
+				});
 
-					if (recipientType === 'term') {
-						setToTerms(
-							(recipients as TUserNotificationRecipients[])
-								.map(({term}) => term)
-								.join()
-						);
-					}
+				setTemplateTitle(name);
+
+				if (recipientType === 'term') {
+					setToTerms(
+						(recipients as TUserNotificationRecipients[])
+							.map(({term}) => term)
+							.join()
+					);
 				}
-			);
-		}
-		else {
-			setTemplateTitle(
-				Liferay.Language.get('untitled-notification-template')
-			);
-		}
+			}
+			else {
+				setTemplateTitle(
+					Liferay.Language.get('untitled-notification-template')
+				);
+			}
+		};
+
+		makeFetch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notificationTemplateId]);
 
@@ -525,6 +542,14 @@ export default function EditNotificationTemplate({
 
 						<div className="col-lg-6 lfr__notification-template-card">
 							<Card title={Liferay.Language.get('settings')}>
+								{Liferay.FeatureFlags['LPS-162598'] && (
+									<Text as="span" color="secondary">
+										{Liferay.Language.get(
+											'use-terms-to-populate-fields-dynamically'
+										)}
+									</Text>
+								)}
+
 								{Liferay.FeatureFlags['LPS-162133'] &&
 								values.type === 'userNotification' ? (
 									<>
@@ -569,7 +594,7 @@ export default function EditNotificationTemplate({
 														Liferay.Language.get(
 															'use-terms-to-configure-recipients-for-this-notification-x'
 														),
-														'[%ENTRY_CREATOR%], [%BUYER_NAME%]',
+														'[%ENTRY_CREATOR%]',
 														'.'
 													)}
 													type="text"
@@ -648,19 +673,13 @@ export default function EditNotificationTemplate({
 											onChange={(translation) => {
 												setValues({
 													...values,
-													...(!Liferay.FeatureFlags[
-														'LPS-162133'
-													]
-														? {
-																recipients: [
-																	{
-																		...values
-																			.recipients[0],
-																		to: translation,
-																	},
-																],
-														  }
-														: {to: translation}),
+													recipients: [
+														{
+															...values
+																.recipients[0],
+															to: translation,
+														},
+													],
 												});
 											}}
 											placeholder=""
@@ -682,34 +701,21 @@ export default function EditNotificationTemplate({
 													onChange={({target}) =>
 														setValues({
 															...values,
-															...(!Liferay
-																.FeatureFlags[
-																'LPS-162133'
-															]
-																? {
-																		recipients: [
-																			{
-																				...values
-																					.recipients[0],
-																				cc:
-																					target.value,
-																			},
-																		],
-																  }
-																: {
-																		cc:
-																			target.value,
-																  }),
+
+															recipients: [
+																{
+																	...values
+																		.recipients[0],
+																	cc:
+																		target.value,
+																},
+															],
 														})
 													}
 													value={
-														!Liferay.FeatureFlags[
-															'LPS-162133'
-														]
-															? (values
-																	.recipients[0] as TEmailRecipients)
-																	.cc
-															: values.cc
+														(values
+															.recipients[0] as TEmailRecipients)
+															.cc
 													}
 												/>
 											</div>
@@ -723,34 +729,21 @@ export default function EditNotificationTemplate({
 													onChange={({target}) =>
 														setValues({
 															...values,
-															...(!Liferay
-																.FeatureFlags[
-																'LPS-162133'
-															]
-																? {
-																		recipients: [
-																			{
-																				...values
-																					.recipients[0],
-																				bcc:
-																					target.value,
-																			},
-																		],
-																  }
-																: {
-																		bcc:
-																			target.value,
-																  }),
+
+															recipients: [
+																{
+																	...values
+																		.recipients[0],
+																	bcc:
+																		target.value,
+																},
+															],
 														})
 													}
 													value={
-														!Liferay.FeatureFlags[
-															'LPS-162133'
-														]
-															? (values
-																	.recipients[0] as TEmailRecipients)
-																	.bcc
-															: values.bcc
+														(values
+															.recipients[0] as TEmailRecipients)
+															.bcc
 													}
 												/>
 											</div>
@@ -767,35 +760,21 @@ export default function EditNotificationTemplate({
 													onChange={({target}) =>
 														setValues({
 															...values,
-															...(!Liferay
-																.FeatureFlags[
-																'LPS-162133'
-															]
-																? {
-																		recipients: [
-																			{
-																				...values
-																					.recipients[0],
-																				from:
-																					target.value,
-																			},
-																		],
-																  }
-																: {
-																		from:
-																			target.value,
-																  }),
+															recipients: [
+																{
+																	...values
+																		.recipients[0],
+																	from:
+																		target.value,
+																},
+															],
 														})
 													}
 													required
 													value={
-														!Liferay.FeatureFlags[
-															'LPS-162133'
-														]
-															? (values
-																	.recipients[0] as TEmailRecipients)
-																	.from
-															: values.from
+														(values
+															.recipients[0] as TEmailRecipients)
+															.from
 													}
 												/>
 											</div>
@@ -810,22 +789,14 @@ export default function EditNotificationTemplate({
 													onChange={(translation) => {
 														setValues({
 															...values,
-															...(!Liferay
-																.FeatureFlags[
-																'LPS-162133'
-															]
-																? {
-																		recipients: [
-																			{
-																				...values
-																					.recipients[0],
-																				fromName: translation,
-																			},
-																		],
-																  }
-																: {
-																		fromName: translation,
-																  }),
+
+															recipients: [
+																{
+																	...values
+																		.recipients[0],
+																	fromName: translation,
+																},
+															],
 														});
 													}}
 													placeholder=""
@@ -834,13 +805,9 @@ export default function EditNotificationTemplate({
 														selectedLocale
 													}
 													translations={
-														!Liferay.FeatureFlags[
-															'LPS-162133'
-														]
-															? (values
-																	.recipients[0] as TEmailRecipients)
-																	.fromName
-															: values.fromName!
+														(values
+															.recipients[0] as TEmailRecipients)
+															.fromName
 													}
 												/>
 											</div>
@@ -852,6 +819,14 @@ export default function EditNotificationTemplate({
 					</div>
 
 					<Card title={Liferay.Language.get('content')}>
+						{Liferay.FeatureFlags['LPS-162598'] && (
+							<Text as="span" color="secondary">
+								{Liferay.Language.get(
+									'use-terms-to-populate-fields-dynamically-with-the-exception-of-the-freemarker-template-editor'
+								)}
+							</Text>
+						)}
+
 						<InputLocalized
 							{...(values.type === 'userNotification' && {
 								component: 'textarea',
@@ -870,25 +845,120 @@ export default function EditNotificationTemplate({
 						/>
 
 						{values.type === 'email' && (
-							<RichTextLocalized
-								editorConfig={editorConfig}
-								label={Liferay.Language.get('body')}
-								name="body"
-								onSelectedLocaleChange={({label}) =>
-									setSelectedLocale(label)
-								}
-								onTranslationsChange={(translation) => {
-									setValues({
-										...values,
-										body: translation,
-									});
-								}}
-								selectedLocale={selectedLocale}
-								translations={values.body}
-							/>
+							<>
+								{Liferay.FeatureFlags['LPS-162598'] ? (
+									<>
+										<SingleSelect<EditorType>
+											label={Liferay.Language.get(
+												'editor-type'
+											)}
+											onChange={({value}: EditorType) => {
+												setValues({
+													...values,
+													editorType: value,
+												});
+											}}
+											options={
+												EDITOR_TYPES as EditorType[]
+											}
+											required
+											value={
+												EDITOR_TYPES.find(
+													({value}) =>
+														value ===
+														values.editorType
+												)?.label
+											}
+										/>
+
+										{values.editorType === 'richText' ? (
+											<RichTextLocalized
+												editorConfig={editorConfig}
+												label={Liferay.Language.get(
+													'template'
+												)}
+												name="template"
+												onSelectedLocaleChange={({
+													label,
+												}) => setSelectedLocale(label)}
+												onTranslationsChange={(
+													translation
+												) => {
+													setValues({
+														...values,
+														body: translation,
+													});
+												}}
+												selectedLocale={selectedLocale}
+												translations={values.body}
+											/>
+										) : (
+											<>
+												<CodeEditor
+													CustomSidebarContent={
+														<FreemarkerEditorSidebarContent
+															objectDefinitions={
+																objectDefinitions
+															}
+														/>
+													}
+													mode="freemarker"
+													onChange={(template) =>
+														setValues({
+															...values,
+															body: {
+																[defaultLanguageId]: template,
+															},
+														})
+													}
+													placeholder={`<#--${Liferay.Language.get(
+														'add-elements-from-the-sidebar-to-define-your-template'
+													)}-->`}
+													sidebarElements={[]}
+													value={
+														values.body[
+															defaultLanguageId
+														] ?? ''
+													}
+												/>
+
+												<Text
+													as="span"
+													color="secondary"
+													size={3}
+												>
+													{Liferay.Language.get(
+														'object-terms-cannot-be-used-in-freemarker-templates'
+													)}
+												</Text>
+											</>
+										)}
+									</>
+								) : (
+									<RichTextLocalized
+										editorConfig={editorConfig}
+										label={Liferay.Language.get('body')}
+										name="body"
+										onSelectedLocaleChange={({label}) =>
+											setSelectedLocale(label)
+										}
+										onTranslationsChange={(translation) => {
+											setValues({
+												...values,
+												body: translation,
+											});
+										}}
+										selectedLocale={selectedLocale}
+										translations={values.body}
+									/>
+								)}
+							</>
 						)}
 
-						<DefinitionOfTerms baseResourceURL={baseResourceURL} />
+						<DefinitionOfTerms
+							baseResourceURL={baseResourceURL}
+							objectDefinitions={objectDefinitions}
+						/>
 
 						{values.type === 'email' && (
 							<Attachments

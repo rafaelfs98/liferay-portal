@@ -425,13 +425,7 @@ public class EditFragmentEntryDisplayContext {
 			FragmentCollectionServiceUtil.fetchFragmentCollection(
 				getFragmentCollectionId());
 
-		List<String> resources = new ArrayList<>();
-
-		if (fragmentCollection != null) {
-			for (FileEntry fileEntry : fragmentCollection.getResources()) {
-				resources.add(fileEntry.getFileName());
-			}
-		}
+		List<String> resources = _getResources(fragmentCollection);
 
 		return HashMapBuilder.<String, Object>put(
 			"allowedStatus",
@@ -558,6 +552,19 @@ public class EditFragmentEntryDisplayContext {
 		).setParameter(
 			"fragmentEntryId", getFragmentEntryId()
 		).buildString();
+	}
+
+	private List<String> _getResources(FragmentCollection fragmentCollection)
+		throws Exception {
+
+		if (fragmentCollection == null) {
+			return new ArrayList<>();
+		}
+
+		Map<String, FileEntry> resourcesMap =
+			fragmentCollection.getResourcesMap();
+
+		return new ArrayList<>(resourcesMap.keySet());
 	}
 
 	private boolean _isCacheableEnabled() {

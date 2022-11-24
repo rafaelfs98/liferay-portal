@@ -104,13 +104,13 @@ public class ObjectEntryInfoItemFieldValuesProvider
 			_getInfoFieldValues(objectEntry)
 		).infoFieldValues(
 			_infoItemFieldReaderFieldSetProvider.getInfoFieldValues(
-				ObjectEntry.class.getName(), objectEntry)
+				objectEntry.getModelClassName(), objectEntry)
 		).infoFieldValues(
 			_templateInfoItemFieldSetProvider.getInfoFieldValues(
 				objectEntry.getModelClassName(), objectEntry)
 		).infoItemReference(
 			new InfoItemReference(
-				ObjectEntry.class.getName(), objectEntry.getObjectEntryId())
+				objectEntry.getModelClassName(), objectEntry.getObjectEntryId())
 		).build();
 	}
 
@@ -324,6 +324,10 @@ public class ObjectEntryInfoItemFieldValuesProvider
 				_listTypeEntryLocalService.fetchListTypeEntry(
 					objectField.getListTypeDefinitionId(),
 					(String)values.get(objectField.getName()));
+
+			if (listTypeEntry == null) {
+				return StringPool.BLANK;
+			}
 
 			return listTypeEntry.getName(serviceContext.getLocale());
 		}

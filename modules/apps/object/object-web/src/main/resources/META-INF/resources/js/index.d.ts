@@ -38,6 +38,7 @@ interface ObjectAction {
 	name: string;
 	objectActionExecutorKey: string;
 	objectActionTriggerKey: string;
+	objectDefinitionId?: number;
 	objectDefinitionsRelationshipsURL: string;
 	parameters?: ObjectActionParameters;
 	script?: string;
@@ -220,6 +221,8 @@ type ObjectFieldSettingName =
 	| 'objectFieldName'
 	| 'objectRelationshipName'
 	| 'output'
+	| 'readOnly'
+	| 'readOnlyScript'
 	| 'script'
 	| 'showCounter'
 	| 'showFilesInDocumentsAndMedia'
@@ -248,7 +251,7 @@ interface ObjectRelationship {
 	readonly objectDefinitionName2: string;
 	objectRelationshipId: number;
 	parameterObjectFieldId?: number;
-	reverse?: boolean;
+	reverse: boolean;
 	type: ObjectRelationshipType;
 }
 

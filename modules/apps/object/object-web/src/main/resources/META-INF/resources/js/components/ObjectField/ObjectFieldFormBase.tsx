@@ -247,12 +247,23 @@ export default function ObjectFieldFormBase({
 		}
 	}, [objectRelationshipId]);
 
-	const getMandatoryToggleState = () => {
+	const getMandatoryToggleDisabledState = () => {
 		if (
 			oneToManyRelationship &&
 			oneToManyRelationship.deletionType !== 'disassociate'
 		) {
 			return false;
+		}
+
+		const readOnlySetting = values.objectFieldSettings?.find(
+			(fieldSetting) => fieldSetting.name === 'readOnly'
+		);
+
+		if (
+			readOnlySetting?.value === 'true' ||
+			readOnlySetting?.value === 'conditional'
+		) {
+			return true;
 		}
 
 		return disabled || values.state;
@@ -343,7 +354,7 @@ export default function ObjectFieldFormBase({
 
 			{(values.businessType === 'Picklist' ||
 				values.businessType === 'MultiselectPicklist') && (
-				<AutoComplete
+				<AutoComplete<Partial<PickList>>
 					disabled={disabled}
 					emptyStateMessage={Liferay.Language.get('option-not-found')}
 					error={errors.listTypeDefinitionId}
@@ -376,7 +387,7 @@ export default function ObjectFieldFormBase({
 				{values.businessType !== 'Aggregation' &&
 					values.businessType !== 'Formula' && (
 						<ClayToggle
-							disabled={getMandatoryToggleState()}
+							disabled={getMandatoryToggleDisabledState()}
 							label={Liferay.Language.get('mandatory')}
 							name="required"
 							onToggle={(required) => setValues({required})}
@@ -413,7 +424,7 @@ export default function ObjectFieldFormBase({
 			</ClayForm.Group>
 
 			{values.state && (
-				<AutoComplete
+				<AutoComplete<PickListItem>
 					emptyStateMessage={Liferay.Language.get('option-not-found')}
 					error={errors.defaultValue}
 					items={filteredPicklistItems}

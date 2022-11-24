@@ -18,6 +18,8 @@ export {Card} from './components/Card';
 export {
 	default as CodeEditor,
 	CodeMirrorEditor,
+	Collapsible,
+	Element,
 	SidebarCategory,
 } from './components/CodeEditor/index';
 export {DatePicker} from './components/DatePicker';

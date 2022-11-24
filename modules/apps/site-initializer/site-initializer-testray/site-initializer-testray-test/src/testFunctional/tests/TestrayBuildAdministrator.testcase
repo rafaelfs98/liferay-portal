@@ -36,7 +36,7 @@ definition {
 
 			TestrayContextMenu.selectItemFromProjectsContextMenu(item = "Manage Teams");
 
-			Testray.addNewTeam(teamName = "Components_1 Team");
+			TestrayManage.createTeam(teamName = "Components_1 Team");
 
 			TestrayManage.closeModalInOptions();
 		}
@@ -133,6 +133,49 @@ definition {
 				gitHash = "12345",
 				productVersion = "1.2",
 				routine = "Routines_1 Routine");
+		}
+
+		task ("Then the Routine should appear on the list") {
+			Testray.assertItemName(key_name = "Builds_1 Project");
+		}
+	}
+
+	@description = "This is a test for LPS-163712 - Verify if as an administrator can add a build with multiple options(Suite, Case, Option and Select Stacks)"
+	@priority = "5"
+	test AdminCanAddBuildWithMultipleOptions {
+		task ("Given that the user add a new build") {
+			Testray.goToProjectPage(projectName = "Projects_1 Project");
+
+			Testray.projectTabNavigator(navTabName = "Suites");
+
+			TestraySuites.addSuite(
+				caseType = "Automated Functional Test",
+				mainComponent = "Tags",
+				priorityNumber = "3",
+				smartSuite = "true",
+				suiteDescription = "ATF_Suites_1 Suite Description",
+				suiteName = "ATF_Suites_1 Suite");
+
+			Testray.projectTabNavigator(navTabName = "Routines");
+
+			TestrayRoutines.goToRoutine(routineName = "Routines_1 Routine");
+
+			TestrayBuild.addBuildWithMultipleOptions(
+				addVersion = "1.2",
+				caseName = "Cases_1 Case",
+				categoryName = "Database",
+				description = "Builds_1 Project Description",
+				dropdownItem = "New Build",
+				fieldName = "Builds_1 Project",
+				gitHash = "12345",
+				labelStack = "Application Server",
+				labelStack2 = "Browser",
+				optionName = "Option_1",
+				productVersion = "1.2",
+				routine = "Routines_1 Routine",
+				stackName = "TcServer 3.2",
+				stackName2 = "Internet Explorer 7",
+				suiteName = "ATF_Suites_1 Suite");
 		}
 
 		task ("Then the Routine should appear on the list") {
@@ -305,10 +348,10 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-156557 - Verify if as an Administrator I should not be able to archive a build where its task is in analysis using"
+	@description = "This is a test for LPS-156557 - Verify if as an Administrator I should not be able to archive a build where its task is in analysis"
 	@ignore = "Test Stub"
 	@priority = "3"
-	test AdminCanNotArchiveBuildInAnalysis {
+	test AdminCanNotArchivedBuildInAnalysis {
 
 		// TODO LPS-156557 AdminCanNotArchivedBuildInAnalysis pending implementation
 
@@ -353,12 +396,21 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-156585 - Verify if as an Administrator I should be able to sort the Builds Index"
+	@description = "This is a test for LPS-156585 - Verify if as an Administrator I should be able to sort the Builds Name"
 	@ignore = "Test Stub"
 	@priority = "4"
 	test AdminCanSortBuildByName {
 
-		// TODO LPS-156585 AdminCanSortCompilationBuildName pending implementation
+		// TODO LPS-156585 AdminCanSortBuildByName pending implementation
+
+	}
+
+	@description = "This is a test for LPS-156588 - Verify if as an Administrator I should be able to sort the Builds Product Version"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test AdminCanSortBuildProductVersion {
+
+		// TODO LPS-156588 AdminCanSortBuildProductVersion pending implementation
 
 	}
 
@@ -368,15 +420,6 @@ definition {
 	test AdminCanSortBuildPromoted {
 
 		// TODO LPS-156586 AdminCanSortBuildPromoted pending implementation
-
-	}
-
-	@description = "This is a test for LPS-156588 - Verify if as an Administrator I should be able to sort the Builds Index"
-	@ignore = "Test Stub"
-	@priority = "4"
-	test AdminCanSortCompilationBuildProductVersion {
-
-		// TODO LPS-156588 AdminCanSortCompilationBuildProductVersion pending implementation
 
 	}
 

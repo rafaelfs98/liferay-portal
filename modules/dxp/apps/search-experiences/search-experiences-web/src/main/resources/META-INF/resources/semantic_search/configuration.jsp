@@ -18,7 +18,8 @@
 
 <%@ taglib uri="http://liferay.com/tld/react" prefix="react" %>
 
-<%@ page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
+<%@ page import="com.liferay.learn.LearnMessageUtil" %><%@
+page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
 page import="com.liferay.search.experiences.web.internal.display.context.SemanticSearchCompanyConfigurationDisplayContext" %>
 
 <portlet:defineObjects />
@@ -42,7 +43,7 @@ SemanticSearchCompanyConfigurationDisplayContext semanticSearchCompanyConfigurat
 			).put(
 				"availableLanguageDisplayNames", semanticSearchCompanyConfigurationDisplayContext.getAvailableLanguageDisplayNames()
 			).put(
-				"availableSentenceTransformProviders", semanticSearchCompanyConfigurationDisplayContext.getAvailableSentenceTranformProviders()
+				"availableSentenceTransformers", semanticSearchCompanyConfigurationDisplayContext.getAvailableSentenceTransformers()
 			).put(
 				"availableTextTruncationStrategies", semanticSearchCompanyConfigurationDisplayContext.getAvailableTextTruncationStrategies()
 			).put(
@@ -50,11 +51,11 @@ SemanticSearchCompanyConfigurationDisplayContext semanticSearchCompanyConfigurat
 			).put(
 				"embeddingVectorDimensions", semanticSearchCompanyConfigurationDisplayContext.getEmbeddingVectorDimensions()
 			).put(
-				"enableGPU", semanticSearchCompanyConfigurationDisplayContext.isEnableGPU()
-			).put(
 				"huggingFaceAccessToken", semanticSearchCompanyConfigurationDisplayContext.getHuggingFaceAccessToken()
 			).put(
 				"languageIds", semanticSearchCompanyConfigurationDisplayContext.getLanguageIds()
+			).put(
+				"learnMessages", LearnMessageUtil.getJSONObject("search-experiences-web")
 			).put(
 				"maxCharacterCount", semanticSearchCompanyConfigurationDisplayContext.getMaxCharacterCount()
 			).put(
@@ -64,13 +65,17 @@ SemanticSearchCompanyConfigurationDisplayContext semanticSearchCompanyConfigurat
 			).put(
 				"namespace", liferayPortletResponse.getNamespace()
 			).put(
-				"sentenceTransformerEnabled", semanticSearchCompanyConfigurationDisplayContext.isSentenceTransformerEnabled()
+				"sentenceTransformer", semanticSearchCompanyConfigurationDisplayContext.getSentenceTransformer()
 			).put(
-				"sentenceTransformProvider", semanticSearchCompanyConfigurationDisplayContext.getSentenceTransformProvider()
+				"sentenceTransformerEnabled", semanticSearchCompanyConfigurationDisplayContext.isSentenceTransformerEnabled()
 			).put(
 				"textTruncationStrategy", semanticSearchCompanyConfigurationDisplayContext.getTextTruncationStrategy()
 			).put(
 				"txtaiHostAddress", semanticSearchCompanyConfigurationDisplayContext.getTxtaiHostAddress()
+			).put(
+				"txtaiPassword", semanticSearchCompanyConfigurationDisplayContext.getTxtaiPassword()
+			).put(
+				"txtaiUsername", semanticSearchCompanyConfigurationDisplayContext.getTxtaiUserName()
 			).build()
 		%>'
 	/>

@@ -42,7 +42,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Danny Situ
  */
-@Component(immediate = true, service = StagedModelDataHandler.class)
+@Component(service = StagedModelDataHandler.class)
 public class CPAttachmentFileEntryStagedModelDataHandler
 	extends BaseStagedModelDataHandler<CPAttachmentFileEntry> {
 
@@ -195,8 +195,8 @@ public class CPAttachmentFileEntryStagedModelDataHandler
 			CPAttachmentFileEntry companyCPAttachmentFileEntry =
 				_cpAttachmentFileEntryLocalService.
 					fetchCPAttachmentFileEntryByExternalReferenceCode(
-						cpAttachmentFileEntry.getCompanyId(),
-						cpAttachmentFileEntry.getExternalReferenceCode());
+						cpAttachmentFileEntry.getExternalReferenceCode(),
+						cpAttachmentFileEntry.getCompanyId());
 
 			if (companyCPAttachmentFileEntry != null) {
 				externalReferenceCode = null;

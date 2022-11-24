@@ -17,11 +17,15 @@ package com.liferay.portal.vulcan.internal.template.servlet;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -33,30 +37,40 @@ public class RESTClientHttpRequest extends HttpServletRequestWrapper {
 
 	public RESTClientHttpRequest(HttpServletRequest httpServletRequest) {
 		super(httpServletRequest);
+
+		_headers = HashMapBuilder.put(
+			HttpHeaders.ACCEPT, ContentTypes.APPLICATION_JSON
+		).put(
+			"Accept-Language",
+			() -> {
+				Locale locale = PortalUtil.getLocale(httpServletRequest);
+
+				return locale.toLanguageTag();
+			}
+		).build();
 	}
 
 	@Override
 	public String getHeader(String name) {
-		if (StringUtil.equalsIgnoreCase(name, HttpHeaders.ACCEPT)) {
-			return ContentTypes.APPLICATION_JSON;
-		}
-
-		return super.getHeader(name);
+		return _headers.get(name);
 	}
 
 	@Override
 	public Enumeration<String> getHeaders(String name) {
-		if (StringUtil.equalsIgnoreCase(name, HttpHeaders.ACCEPT)) {
-			return Collections.enumeration(
-				Arrays.asList(ContentTypes.APPLICATION_JSON));
+		String value = _headers.get(name);
+
+		if (Validator.isNotNull(value)) {
+			return Collections.enumeration(Arrays.asList(value));
 		}
 
-		return super.getHeaders(name);
+		return Collections.emptyEnumeration();
 	}
 
 	@Override
 	public String getMethod() {
 		return HttpMethods.GET;
 	}
+
+	private final Map<String, String> _headers;
 
 }

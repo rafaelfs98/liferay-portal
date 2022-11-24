@@ -243,7 +243,11 @@ definition {
 		}
 
 		task ("Delete the entries and objects created") {
-			CP2DXPCloudSetup.clearAndDeleteDXPCloudEntries();
+			CP2DXPCloudSetup.clearAndDeleteDXPCloudEntries(status = "In-Progress");
+
+			CP2Utils.deleteSpecificObjectEntry(
+				email = "test@liferay.com",
+				portlet = "Admins DXP Cloud");
 		}
 	}
 
@@ -654,11 +658,7 @@ definition {
 		}
 
 		task ("Going through onboarding") {
-			CustomerPortal.clickOnStartProjectSetup();
-
-			CustomerPortal.clickOnSkipForNowButton();
-
-			CustomerPortal.clickOnSkipForNowButton();
+			CustomerPortal.fullOnboardingFlow();
 		}
 
 		task ("Go to the product activation page and open the card activation modal") {
@@ -681,6 +681,10 @@ definition {
 
 		task ("Delete the entries and objects created") {
 			CP2DXPCloudSetup.clearAndDeleteDXPCloudEntries(status = "In-Progress");
+
+			CP2Utils.deleteSpecificObjectEntry(
+				email = "test@liferay.com",
+				portlet = "Admins DXP Cloud");
 		}
 	}
 

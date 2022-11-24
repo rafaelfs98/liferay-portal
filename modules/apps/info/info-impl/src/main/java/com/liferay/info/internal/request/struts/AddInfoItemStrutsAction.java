@@ -36,7 +36,7 @@ import com.liferay.info.item.InfoItemFieldValues;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.info.item.creator.InfoItemCreator;
-import com.liferay.layout.page.template.util.LayoutStructureUtil;
+import com.liferay.layout.provider.LayoutStructureProvider;
 import com.liferay.layout.util.constants.LayoutDataItemTypeConstants;
 import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
@@ -389,7 +389,7 @@ public class AddInfoItemStrutsAction implements StrutsAction {
 		throws InfoFormException {
 
 		LayoutStructure layoutStructure =
-			LayoutStructureUtil.getLayoutStructure(
+			_layoutStructureProvider.getLayoutStructure(
 				ParamUtil.getLong(httpServletRequest, "plid"),
 				ParamUtil.getLong(httpServletRequest, "segmentsExperienceId"));
 
@@ -468,7 +468,7 @@ public class AddInfoItemStrutsAction implements StrutsAction {
 		throws InfoFormException {
 
 		LayoutStructure layoutStructure =
-			LayoutStructureUtil.getLayoutStructure(
+			_layoutStructureProvider.getLayoutStructure(
 				ParamUtil.getLong(httpServletRequest, "plid"),
 				ParamUtil.getLong(httpServletRequest, "segmentsExperienceId"));
 
@@ -538,6 +538,9 @@ public class AddInfoItemStrutsAction implements StrutsAction {
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutStructureProvider _layoutStructureProvider;
 
 	@Reference
 	private Portal _portal;

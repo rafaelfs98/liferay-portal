@@ -153,7 +153,7 @@ definition {
 	@description = "This is a test for COMMERCE-6301. AddVirtualProduct"
 	@priority = "3"
 	test AddVirtualProduct {
-		property portal.acceptance = "Intern Test";
+		property portal.acceptance = "false";
 
 		// TODO Review
 
@@ -345,21 +345,51 @@ definition {
 	@description = "This is a test for COMMERCE-6912. Bulk delete Products"
 	@priority = "3"
 	test BulkDeleteProducts {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
-		CommerceNavigator.gotoPortlet(
-			category = "Product Management",
-			portlet = "Products");
-
-		Pagination.changePagination(itemsPerPage = "60 items");
-
-		while (IsElementNotPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER")) {
-			CommerceProducts.deleteEntries();
+		task ("Given a Minium Site is created") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 		}
 
-		AssertElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
+		task ("And the admin goes into the Product and verifies if the Trash icon is not present in the header") {
+			CommerceNavigator.gotoPortlet(
+				category = "Product Management",
+				portlet = "Products");
+
+			AssertElementNotPresent(locator1 = "Button#TRASH_ENABLED");
+		}
+
+		task ("When the admin selects one product using the checkbox and verifies if the Trash icon is now present in the header") {
+			CommerceNavigator.searchEntry(entryName = "ABS Sensor");
+
+			Click.clickNoMouseOverNoWaitForVisible(
+				key_productName = "ABS Sensor",
+				locator1 = "CommerceEntry#PRODUCT_ENTRY_CHECKBOX");
+
+			AssertElementPresent(locator1 = "Button#TRASH_ENABLED");
+		}
+
+		task ("Then the admin can remove the product by clicking on the Trash icon") {
+			ClickNoError(locator1 = "Button#TRASH_ENABLED");
+
+			CommerceNavigator.searchEntry(entryName = "ABS Sensor");
+
+			AssertElementNotPresent(
+				key_entryName = "ABS Sensor",
+				locator1 = "CommerceNavigation#ENTRY_NAME");
+		}
+
+		task ("And the admin can delete all the products with one click by using the select all checkbox") {
+			CommerceNavigator.searchEntry(entryName = "");
+
+			Pagination.changePagination(itemsPerPage = "60 items");
+
+			while (IsElementNotPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER")) {
+				CommerceProducts.deleteEntries();
+			}
+
+			AssertElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-9251. CanCheckAnyProductStatusWorkflow"
@@ -666,7 +696,7 @@ definition {
 	@description = "This is a test for COMMERCE-9179. CanCheckDraftProductStatus"
 	@priority = "3"
 	test CanCheckDraftProductStatus {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -1277,7 +1307,13 @@ definition {
    				}'
 			''';
 
-			com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+			var responseBody = JSONCurlUtil.post("${curl}");
+
+			var productName = JSONUtil.getWithJSONPath("${responseBody}", "$..['name'].['en_US']");
+
+			if ("${productName}" != "Simple Product") {
+				fail("Something went wrong with the API call");
+			}
 		}
 
 		task ("Then there is no error in the logs") {
@@ -1331,15 +1367,17 @@ definition {
 		}
 
 		task ("When for the product ABS Sensor is uploaded an image using the CDN with API") {
-			CommerceJSONProductsAPI._patchCommerceProductImageUsingERC(
+			var responseBody = CommerceJSONProductsAPI._patchCommerceProductImageUsingERC(
 				cdnEnabled = "true",
 				cdnURL = "http://mirrors.lax.liferay.com/github.com/liferay/liferay-portal/portal-web/test/functional/com/liferay/portalweb/dependencies/Commerce_Black.jpg",
 				imageTitle = "title2",
 				productERC = "MIN93015minium-initializer");
-		}
 
-		task ("Then there is no error in the logs") {
-			AssertConsoleTextNotPresent(value1 = "java.lang.NullPointerException");
+			var status = JSONUtil.getWithJSONPath("${responseBody}", "$..['status']");
+
+			if ("${status}" != "") {
+				fail("Something went wrong with the API call");
+			}
 		}
 
 		task ("And the image is uploaded successfully") {
@@ -2092,7 +2130,7 @@ definition {
 	@description = "COMMERCE-5802. Use a filter always check that the results are correct"
 	@priority = "3"
 	test UseFilters {
-		property portal.acceptance = "false";
+		property portal.acceptance = "true";
 
 		// TODO Review
 

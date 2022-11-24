@@ -132,6 +132,8 @@ AUI.add(
 
 			p_l_id: {},
 
+			portletId: {},
+
 			portletNamespace: {},
 		};
 
@@ -242,6 +244,7 @@ AUI.add(
 					p_p_resource_id:
 						'/dynamic_data_mapping/render_structure_field',
 					p_p_state: 'pop_up',
+					portletId: instance.get('portletId'),
 					portletNamespace: instance.get('portletNamespace'),
 					readOnly: instance.get('readOnly'),
 				};
@@ -590,6 +593,7 @@ AUI.add(
 					instance.set('displayLocale', displayLocale);
 
 					instance.syncLabel(displayLocale);
+					instance.syncTranslatedLabelsUI(currentLocale);
 					instance.syncValueUI();
 					instance.syncReadOnlyUI();
 				},
@@ -1210,6 +1214,57 @@ AUI.add(
 									.get('container')
 									.compareTo(container)
 						);
+				},
+
+				syncTranslatedLabelsUI(locale) {
+					const instance = this;
+
+					const defaultLocale = instance.getDefaultLocale();
+
+					if (locale === defaultLocale) {
+						return;
+					}
+
+					const localizationMap = instance.get('localizationMap');
+
+					const regexpFieldsNamespace = new RegExp(
+						instance.get('name') +
+							INSTANCE_ID_PREFIX +
+							instance.get('instanceId'),
+						'gi'
+					);
+					const fieldsNamespace = instance
+						.getInputName()
+						.replace(regexpFieldsNamespace, '');
+
+					const labelItem = A.one(
+						'#' +
+							fieldsNamespace +
+							'PaletteContentBox a[data-value="' +
+							locale +
+							'"] .label'
+					);
+
+					if (
+						labelItem &&
+						// eslint-disable-next-line @liferay/aui/no-object
+						!A.Object.isEmpty(localizationMap) &&
+						Object.prototype.hasOwnProperty.call(
+							localizationMap,
+							locale
+						)
+					) {
+						const translated = Liferay.Language.get('translated');
+						if (labelItem.getContent() !== translated) {
+							labelItem.setContent(translated);
+						}
+						if (labelItem.hasClass('label-warning')) {
+							labelItem.removeClass('label-warning');
+						}
+						if (!labelItem.hasClass('label-success')) {
+							labelItem.addClass('label-success');
+						}
+					}
 				},
 
 				syncValueUI() {

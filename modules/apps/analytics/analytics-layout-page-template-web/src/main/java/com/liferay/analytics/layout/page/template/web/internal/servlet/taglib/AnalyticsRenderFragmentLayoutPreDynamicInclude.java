@@ -17,14 +17,17 @@ package com.liferay.analytics.layout.page.template.web.internal.servlet.taglib;
 import com.liferay.analytics.layout.page.template.web.internal.servlet.taglib.util.AnalyticsRenderFragmentLayoutUtil;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.TreeMapBuilder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -73,6 +76,23 @@ public class AnalyticsRenderFragmentLayoutPreDynamicInclude
 			"com.liferay.layout,taglib#/render_fragment_layout/page.jsp#pre");
 	}
 
+	private <T> Map<String, Function<T, String>> _initAttributes(
+		AnalyticsRenderFragmentLayoutUtil.AnalyticsAssetType analyticsAssetType,
+		long classPK, String title) {
+
+		return TreeMapBuilder.<String, Function<T, String>>put(
+			"data-analytics-asset-id", displayObject -> String.valueOf(classPK)
+		).put(
+			"data-analytics-asset-title",
+			displayObject -> HtmlUtil.escapeAttribute(title)
+		).put(
+			"data-analytics-asset-type",
+			displayObject -> analyticsAssetType.getType()
+		).putAll(
+			analyticsAssetType.getAttributes()
+		).build();
+	}
+
 	private <T> void _printAnalyticsCloudAssetTracker(
 		String className, long classPK, T displayObject,
 		PrintWriter printWriter, String title) {
@@ -86,30 +106,39 @@ public class AnalyticsRenderFragmentLayoutPreDynamicInclude
 			return;
 		}
 
-		printWriter.print("<div data-analytics-asset-id=\"");
-		printWriter.print(classPK);
-		printWriter.print("\" data-analytics-asset-title=\"");
-		printWriter.print(HtmlUtil.escapeAttribute(title));
-		printWriter.print("\" data-analytics-asset-type=\"");
-		printWriter.print(analyticsAssetType.getType());
+		Map<String, Function<T, String>> attributes = _initAttributes(
+			analyticsAssetType, classPK, title);
 
-		Map<String, Function<T, String>> attributes =
-			analyticsAssetType.getAttributes();
+		StringBundler sb = new StringBundler((attributes.size() * 5) + 1);
 
-		Set<Map.Entry<String, Function<T, String>>> entries =
-			attributes.entrySet();
+		sb.append("<div ");
 
-		for (Map.Entry<String, Function<T, String>> entry : entries) {
-			printWriter.print("\" ");
-			printWriter.print(entry.getKey());
-			printWriter.print("=\"");
+		Set<Map.Entry<String, Function<T, String>>> set = attributes.entrySet();
+
+		Iterator<Map.Entry<String, Function<T, String>>> iterator =
+			set.iterator();
+
+		while (iterator.hasNext()) {
+			Map.Entry<String, Function<T, String>> entry = iterator.next();
+
+			sb.append(entry.getKey());
+
+			sb.append("=\"");
 
 			Function<T, String> function = entry.getValue();
 
-			printWriter.print(function.apply(displayObject));
+			sb.append(function.apply(displayObject));
+
+			sb.append("\"");
+
+			if (iterator.hasNext()) {
+				sb.append(" ");
+			}
 		}
 
-		printWriter.print("\">");
+		sb.append(">");
+
+		printWriter.print(sb);
 	}
 
 	@Reference

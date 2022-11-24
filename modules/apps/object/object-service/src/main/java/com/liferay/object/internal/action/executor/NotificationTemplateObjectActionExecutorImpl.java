@@ -21,10 +21,11 @@ import com.liferay.notification.type.NotificationType;
 import com.liferay.notification.type.NotificationTypeServiceTracker;
 import com.liferay.object.action.executor.ObjectActionExecutor;
 import com.liferay.object.constants.ObjectActionExecutorConstants;
-import com.liferay.object.internal.action.util.ObjectActionVariablesUtil;
+import com.liferay.object.internal.action.util.ObjectEntryVariablesUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.system.SystemObjectDefinitionMetadataRegistry;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -57,19 +58,18 @@ public class NotificationTemplateObjectActionExecutorImpl
 			_notificationTypeServiceTracker.getNotificationType(
 				notificationTemplate.getType());
 
-		NotificationContextBuilder notificationContextBuilder =
-			new NotificationContextBuilder();
-
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.fetchObjectDefinition(
 				payloadJSONObject.getLong("objectDefinitionId"));
 
-		Map<String, Object> termValues = ObjectActionVariablesUtil.toVariables(
-			_dtoConverterRegistry, objectDefinition, payloadJSONObject,
-			_systemObjectDefinitionMetadataRegistry);
+		Map<String, Object> termValues =
+			ObjectEntryVariablesUtil.getActionVariables(
+				_dtoConverterRegistry, objectDefinition, payloadJSONObject,
+				_systemObjectDefinitionMetadataRegistry);
 
 		notificationType.sendNotification(
-			notificationContextBuilder.className(
+			new NotificationContextBuilder(
+			).className(
 				objectDefinition.getClassName()
 			).classPK(
 				GetterUtil.getLong(termValues.get("id"))
@@ -82,7 +82,8 @@ public class NotificationTemplateObjectActionExecutorImpl
 			).userId(
 				userId
 			).portletId(
-				objectDefinition.getPortletId()
+				objectDefinition.isSystem() ? StringPool.BLANK :
+					objectDefinition.getPortletId()
 			).build());
 	}
 

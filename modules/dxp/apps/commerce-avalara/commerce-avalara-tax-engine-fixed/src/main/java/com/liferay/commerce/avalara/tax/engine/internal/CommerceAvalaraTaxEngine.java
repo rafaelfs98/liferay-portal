@@ -35,7 +35,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author Calvin Keum
  */
 @Component(
-	immediate = true,
 	property = "commerce.tax.engine.key=" + CommerceAvalaraTaxEngine.KEY,
 	service = CommerceTaxEngine.class
 )
@@ -79,10 +78,11 @@ public class CommerceAvalaraTaxEngine implements CommerceTaxEngine {
 	private long _getTangiblePersonalPropertyTaxCategoryId() {
 		if (_tangiblePersonalPropertyTaxCategoryId == 0) {
 			CPTaxCategory cpTaxCategory =
-				_cpTaxCategoryLocalService.fetchCPTaxCategoryByReferenceCode(
-					CompanyThreadLocal.getCompanyId(),
-					CommerceAvalaraConstants.
-						CP_TAX_CATEGORY_ERC_TANGIBLE_PERSONAL_PROPERTY);
+				_cpTaxCategoryLocalService.
+					fetchCPTaxCategoryByExternalReferenceCode(
+						CommerceAvalaraConstants.
+							CP_TAX_CATEGORY_ERC_TANGIBLE_PERSONAL_PROPERTY,
+						CompanyThreadLocal.getCompanyId());
 
 			if (cpTaxCategory == null) {
 				_tangiblePersonalPropertyTaxCategoryId = 0;

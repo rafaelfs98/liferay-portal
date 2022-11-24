@@ -213,7 +213,7 @@ public class UserServiceImpl extends UserServiceBaseImpl {
 			WorkflowThreadLocal.setEnabled(false);
 
 			User user = userLocalService.fetchUserByExternalReferenceCode(
-				companyId, externalReferenceCode);
+				externalReferenceCode, companyId);
 
 			if (user == null) {
 				checkAddUserPermission(
@@ -1168,6 +1168,22 @@ public class UserServiceImpl extends UserServiceBaseImpl {
 	}
 
 	@Override
+	public User fetchUserByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		User user = userLocalService.fetchUserByExternalReferenceCode(
+			externalReferenceCode, companyId);
+
+		if (user != null) {
+			UserPermissionUtil.check(
+				getPermissionChecker(), user.getUserId(), ActionKeys.VIEW);
+		}
+
+		return user;
+	}
+
+	@Override
 	public List<User> getCompanyUsers(long companyId, int start, int end)
 		throws PortalException {
 
@@ -1526,7 +1542,7 @@ public class UserServiceImpl extends UserServiceBaseImpl {
 		throws PortalException {
 
 		User user = userLocalService.getUserByExternalReferenceCode(
-			companyId, externalReferenceCode);
+			externalReferenceCode, companyId);
 
 		UserPermissionUtil.check(
 			getPermissionChecker(), user.getUserId(), ActionKeys.VIEW);

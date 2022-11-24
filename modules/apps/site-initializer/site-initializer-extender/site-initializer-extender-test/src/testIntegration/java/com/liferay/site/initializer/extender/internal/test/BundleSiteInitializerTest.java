@@ -94,6 +94,7 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
@@ -130,9 +131,11 @@ import com.liferay.portal.kernel.settings.ModifiableSettings;
 import com.liferay.portal.kernel.settings.Settings;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -153,6 +156,7 @@ import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.service.SegmentsEntryLocalService;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.site.initializer.SiteInitializer;
+import com.liferay.site.initializer.SiteInitializerFactory;
 import com.liferay.site.initializer.SiteInitializerRegistry;
 import com.liferay.site.navigation.menu.item.layout.constants.SiteNavigationMenuItemTypeConstants;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
@@ -162,6 +166,7 @@ import com.liferay.site.navigation.service.SiteNavigationMenuLocalService;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.StyleBookEntryLocalService;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -194,6 +199,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Brian Wing Shun Chan
  */
+@DataGuard(scope = DataGuard.Scope.METHOD)
 @RunWith(Arquillian.class)
 public class BundleSiteInitializerTest {
 
@@ -205,7 +211,7 @@ public class BundleSiteInitializerTest {
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Test
-	public void testInitialize() throws Exception {
+	public void testInitializeFromBundle() throws Exception {
 		Bundle testBundle = FrameworkUtil.getBundle(
 			BundleSiteInitializerTest.class);
 
@@ -215,106 +221,38 @@ public class BundleSiteInitializerTest {
 
 		bundle.start();
 
-		SiteInitializer siteInitializer =
-			_siteInitializerRegistry.getSiteInitializer(
-				bundle.getSymbolicName());
-
-		Group group = GroupTestUtil.addGroup();
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				group.getGroupId(), TestPropsValues.getUserId());
-
-		MockHttpServletRequest mockHttpServletRequest =
-			new MockHttpServletRequest();
-
-		mockHttpServletRequest.setAttribute(
-			WebKeys.USER, TestPropsValues.getUser());
-		mockHttpServletRequest.setParameter(
-			"currentURL", "http://www.liferay.com");
-
-		serviceContext.setRequest(mockHttpServletRequest);
-
-		ServiceContextThreadLocal.pushServiceContext(serviceContext);
-
 		try {
-			siteInitializer.initialize(group.getGroupId());
-
-			_assertAccounts(serviceContext);
-			_assertAssetListEntries(group);
-			_assertAssetVocabularies(group);
-			_assertCommerceCatalogs(group);
-			_assertCommerceChannel(group);
-			_assertCommerceInventoryWarehouse(group);
-			_assertCommerceSpecificationProducts(serviceContext);
-			_assertCPDefinition(group);
-			_assertCPInstanceProperties(group);
-			_assertDDMStructure(group);
-			_assertDDMTemplate(group);
-			_assertDLFileEntry(group);
-			_assertExpandoColumns(serviceContext);
-			_assertFragmentEntries(group, serviceContext);
-			_assertJournalArticles(group);
-			_assertKBArticles(group);
-			_assertLayoutPageTemplateEntry(group);
-			_assertLayouts(group, serviceContext);
-			_assertLayoutSets(group);
-			_assertListTypeDefinitions(serviceContext);
-			_assertNotificationTemplate(serviceContext);
-			_assertObjectDefinitions(group, serviceContext);
-			_assertOrganizations(serviceContext);
-			_assertPermissions(group);
-			_assertPortletSettings(group);
-			_assertClientExtension(group);
-			_assertSAPEntries(group);
-			_assertSegmentsEntries(group.getGroupId());
-			_assertSiteConfiguration(group.getGroupId());
-			_assertSiteSettings(group.getGroupId());
-			_assertSiteNavigationMenu(group);
-			_assertStyleBookEntry(group);
-			_assertUserGroups(group);
-			_assertUserRoles(group);
-			_assertWorkflowDefinitions(group, serviceContext);
+			_test(
+				_siteInitializerRegistry.getSiteInitializer(
+					bundle.getSymbolicName()));
 		}
 		finally {
-			ServiceContextThreadLocal.popServiceContext();
-
-			GroupLocalServiceUtil.deleteGroup(group);
-
-			// TODO We should not need to delete the object definition manually
-			// because of DataGuardTestRule. However,
-			// ObjectDefinitionLocalServiceImpl#deleteObjectDefinition checks
-			// for PortalRunMode#isTestMode which is not returning true when the
-			// DataGuardTestRule runs.
-
-			ObjectDefinition objectDefinition1 =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					serviceContext.getCompanyId(), "C_TestObjectDefinition1");
-
-			if (objectDefinition1 != null) {
-				_objectDefinitionLocalService.deleteObjectDefinition(
-					objectDefinition1.getObjectDefinitionId());
-			}
-
-			ObjectDefinition objectDefinition2 =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					serviceContext.getCompanyId(), "C_TestObjectDefinition2");
-
-			if (objectDefinition2 != null) {
-				_objectDefinitionLocalService.deleteObjectDefinition(
-					objectDefinition2.getObjectDefinitionId());
-			}
-
-			ObjectDefinition objectDefinition3 =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					serviceContext.getCompanyId(), "C_TestObjectDefinition3");
-
-			if (objectDefinition3 != null) {
-				_objectDefinitionLocalService.deleteObjectDefinition(
-					objectDefinition3.getObjectDefinitionId());
-			}
-
 			bundle.uninstall();
+		}
+	}
+
+	@Test
+	public void testInitializeFromFile() throws Exception {
+		File tempFile = FileUtil.createTempFile();
+
+		FileUtil.write(
+			tempFile,
+			BundleSiteInitializerTest.class.getResourceAsStream(
+				"/com.liferay.site.initializer.extender.test.bundle.jar"));
+
+		File tempFolder = FileUtil.createTempFolder();
+
+		FileUtil.unzip(tempFile, tempFolder);
+
+		tempFile.delete();
+
+		try {
+			_test(
+				_siteInitializerFactory.create(
+					new File(tempFolder, "site-initializer"), null));
+		}
+		finally {
+			FileUtil.deltree(tempFolder);
 		}
 	}
 
@@ -371,7 +309,7 @@ public class BundleSiteInitializerTest {
 		AssetCategory testAssetCategory1 =
 			_assetCategoryLocalService.
 				fetchAssetCategoryByExternalReferenceCode(
-					companyGroup.getGroupId(), "TESTCAT0001");
+					"TESTCAT0001", companyGroup.getGroupId());
 
 		Assert.assertNotNull(testAssetCategory1);
 		Assert.assertEquals(
@@ -389,7 +327,7 @@ public class BundleSiteInitializerTest {
 		AssetCategory testAssetCategory3 =
 			_assetCategoryLocalService.
 				fetchAssetCategoryByExternalReferenceCode(
-					group.getGroupId(), "TESTCAT0003");
+					"TESTCAT0003", group.getGroupId());
 
 		Assert.assertNotNull(testAssetCategory3);
 		Assert.assertEquals(
@@ -456,7 +394,7 @@ public class BundleSiteInitializerTest {
 		ClientExtensionEntry clientExtensionEntry =
 			_clientExtensionEntryLocalService.
 				fetchClientExtensionEntryByExternalReferenceCode(
-					group.getCompanyId(), "ERC001");
+					"ERC001", group.getCompanyId());
 
 		Assert.assertNotNull(clientExtensionEntry);
 
@@ -473,7 +411,7 @@ public class BundleSiteInitializerTest {
 		CommerceCatalog commerceCatalog1 =
 			_commerceCatalogLocalService.
 				fetchCommerceCatalogByExternalReferenceCode(
-					group.getCompanyId(), "TESTCATG0001");
+					"TESTCATG0001", group.getCompanyId());
 
 		Assert.assertNotNull(commerceCatalog1);
 		Assert.assertEquals(
@@ -482,7 +420,7 @@ public class BundleSiteInitializerTest {
 		CommerceCatalog commerceCatalog2 =
 			_commerceCatalogLocalService.
 				fetchCommerceCatalogByExternalReferenceCode(
-					group.getCompanyId(), "TESTCATG0002");
+					"TESTCATG0002", group.getCompanyId());
 
 		Assert.assertNotNull(commerceCatalog2);
 		Assert.assertEquals(
@@ -511,7 +449,7 @@ public class BundleSiteInitializerTest {
 		CommerceInventoryWarehouse commerceInventoryWarehouse =
 			_commerceInventoryWarehouseLocalService.
 				fetchCommerceInventoryWarehouseByExternalReferenceCode(
-					group.getCompanyId(), "TESTWARE0001");
+					"TESTWARE0001", group.getCompanyId());
 
 		Assert.assertNotNull(commerceInventoryWarehouse);
 		Assert.assertEquals(
@@ -1039,6 +977,7 @@ public class BundleSiteInitializerTest {
 
 		_assertObjectActions(3, objectDefinition1);
 		_assertObjectEntries(group.getGroupId(), objectDefinition1, 0);
+		_assertObjectFields(objectDefinition1, 9);
 		_assertObjectRelationships(objectDefinition1, serviceContext);
 
 		ObjectDefinition objectDefinition2 =
@@ -1051,6 +990,7 @@ public class BundleSiteInitializerTest {
 
 		_assertObjectActions(2, objectDefinition2);
 		_assertObjectEntries(group.getGroupId(), objectDefinition2, 0);
+		_assertObjectFields(objectDefinition2, 8);
 
 		ObjectDefinition objectDefinition3 =
 			_objectDefinitionLocalService.fetchObjectDefinition(
@@ -1065,6 +1005,7 @@ public class BundleSiteInitializerTest {
 
 		_assertObjectActions(0, objectDefinition3);
 		_assertObjectEntries(0, objectDefinition3, 5);
+		_assertObjectFields(objectDefinition3, 7);
 	}
 
 	private void _assertObjectEntries(
@@ -1076,6 +1017,15 @@ public class BundleSiteInitializerTest {
 			objectEntriesCount,
 			_objectEntryLocalService.getObjectEntriesCount(
 				groupId, objectDefinition.getObjectDefinitionId()));
+	}
+
+	private void _assertObjectFields(
+		ObjectDefinition objectDefinition, int objectFieldsCount) {
+
+		Assert.assertEquals(
+			objectFieldsCount,
+			_objectFieldLocalService.getObjectFieldsCount(
+				objectDefinition.getObjectDefinitionId()));
 	}
 
 	private void _assertObjectRelationships(
@@ -1605,14 +1555,14 @@ public class BundleSiteInitializerTest {
 
 		UserGroup userGroup1 =
 			_userGroupLocalService.fetchUserGroupByExternalReferenceCode(
-				group.getCompanyId(), "TESTUSERGROUP1");
+				"TESTUSERGROUP1", group.getCompanyId());
 
 		Assert.assertNotNull(userGroup1);
 		Assert.assertTrue(userGroups.contains(userGroup1));
 
 		UserGroup userGroup2 =
 			_userGroupLocalService.fetchUserGroupByExternalReferenceCode(
-				group.getCompanyId(), "TESTUSERGROUP2");
+				"TESTUSERGROUP2", group.getCompanyId());
 
 		Assert.assertNotNull(userGroup2);
 		Assert.assertTrue(userGroups.contains(userGroup2));
@@ -1762,6 +1712,106 @@ public class BundleSiteInitializerTest {
 		}
 	}
 
+	private void _test(SiteInitializer siteInitializer) throws Exception {
+		Group group = GroupTestUtil.addGroup();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId());
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.USER, TestPropsValues.getUser());
+		mockHttpServletRequest.setParameter(
+			"currentURL", "http://www.liferay.com");
+
+		serviceContext.setRequest(mockHttpServletRequest);
+
+		ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+		try {
+			siteInitializer.initialize(group.getGroupId());
+
+			_assertAccounts(serviceContext);
+			_assertAssetListEntries(group);
+			_assertAssetVocabularies(group);
+			_assertCommerceCatalogs(group);
+			_assertCommerceChannel(group);
+			_assertCommerceInventoryWarehouse(group);
+			_assertCommerceSpecificationProducts(serviceContext);
+			_assertCPDefinition(group);
+			_assertCPInstanceProperties(group);
+			_assertDDMStructure(group);
+			_assertDDMTemplate(group);
+			_assertDLFileEntry(group);
+			_assertExpandoColumns(serviceContext);
+			_assertFragmentEntries(group, serviceContext);
+			_assertJournalArticles(group);
+			_assertKBArticles(group);
+			_assertLayoutPageTemplateEntry(group);
+			_assertLayouts(group, serviceContext);
+			_assertLayoutSets(group);
+			_assertListTypeDefinitions(serviceContext);
+			_assertNotificationTemplate(serviceContext);
+			_assertObjectDefinitions(group, serviceContext);
+			_assertOrganizations(serviceContext);
+			_assertPermissions(group);
+			_assertPortletSettings(group);
+			_assertClientExtension(group);
+			_assertSAPEntries(group);
+			_assertSegmentsEntries(group.getGroupId());
+			_assertSiteConfiguration(group.getGroupId());
+			_assertSiteSettings(group.getGroupId());
+			_assertSiteNavigationMenu(group);
+			_assertStyleBookEntry(group);
+			_assertUserGroups(group);
+			_assertUserRoles(group);
+			_assertWorkflowDefinitions(group, serviceContext);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+
+			GroupLocalServiceUtil.deleteGroup(group);
+
+			// TODO We should not need to delete the object definition manually
+			// because of DataGuardTestRule. However,
+			// ObjectDefinitionLocalServiceImpl#deleteObjectDefinition checks
+			// for PortalRunMode#isTestMode which is not returning true when the
+			// DataGuardTestRule runs.
+
+			ObjectDefinition objectDefinition1 =
+				_objectDefinitionLocalService.fetchObjectDefinition(
+					serviceContext.getCompanyId(), "C_TestObjectDefinition1");
+
+			if (objectDefinition1 != null) {
+				_objectDefinitionLocalService.deleteObjectDefinition(
+					objectDefinition1.getObjectDefinitionId());
+			}
+
+			ObjectDefinition objectDefinition2 =
+				_objectDefinitionLocalService.fetchObjectDefinition(
+					serviceContext.getCompanyId(), "C_TestObjectDefinition2");
+
+			if (objectDefinition2 != null) {
+				_objectDefinitionLocalService.deleteObjectDefinition(
+					objectDefinition2.getObjectDefinitionId());
+			}
+
+			ObjectDefinition objectDefinition3 =
+				_objectDefinitionLocalService.fetchObjectDefinition(
+					serviceContext.getCompanyId(), "C_TestObjectDefinition3");
+
+			if (objectDefinition3 != null) {
+				_objectDefinitionLocalService.deleteObjectDefinition(
+					objectDefinition3.getObjectDefinitionId());
+			}
+
+			//FileUtil.deltree(unzipFolder);
+		}
+	}
+
 	@Inject
 	private static ConfigurationAdmin _configurationAdmin;
 
@@ -1865,6 +1915,9 @@ public class BundleSiteInitializerTest {
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Inject
+	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Inject
 	private ObjectRelationshipResource.Factory
 		_objectRelationshipResourceFactory;
 
@@ -1898,6 +1951,9 @@ public class BundleSiteInitializerTest {
 
 	@Inject
 	private SettingsFactory _settingsFactory;
+
+	@Inject
+	private SiteInitializerFactory _siteInitializerFactory;
 
 	@Inject
 	private SiteInitializerRegistry _siteInitializerRegistry;

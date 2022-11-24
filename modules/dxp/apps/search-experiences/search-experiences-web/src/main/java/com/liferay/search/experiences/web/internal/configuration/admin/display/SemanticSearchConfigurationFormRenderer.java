@@ -20,6 +20,7 @@ import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.CamelCaseUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.search.experiences.configuration.SemanticSearchConfiguration;
+import com.liferay.search.experiences.ml.sentence.embedding.SentenceEmbeddingRetriever;
 import com.liferay.search.experiences.web.internal.display.context.SemanticSearchCompanyConfigurationDisplayContext;
 
 import java.io.IOException;
@@ -42,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,8 +88,6 @@ public class SemanticSearchConfigurationFormRenderer
 			ParamUtil.getInteger(
 				httpServletRequest, "embeddingVectorDimensions")
 		).put(
-			"enableGPU", ParamUtil.getBoolean(httpServletRequest, "enableGPU")
-		).put(
 			"huggingFaceAccessToken",
 			ParamUtil.getString(httpServletRequest, "huggingFaceAccessToken")
 		).put(
@@ -101,18 +102,24 @@ public class SemanticSearchConfigurationFormRenderer
 			"modelTimeout",
 			ParamUtil.getInteger(httpServletRequest, "modelTimeout")
 		).put(
+			"sentenceTransformer",
+			ParamUtil.getString(httpServletRequest, "sentenceTransformer")
+		).put(
 			"sentenceTransformerEnabled",
 			ParamUtil.getBoolean(
 				httpServletRequest, "sentenceTransformerEnabled")
-		).put(
-			"sentenceTransformProvider",
-			ParamUtil.getString(httpServletRequest, "sentenceTransformProvider")
 		).put(
 			"textTruncationStrategy",
 			ParamUtil.getString(httpServletRequest, "textTruncationStrategy")
 		).put(
 			"txtaiHostAddress",
 			ParamUtil.getString(httpServletRequest, "txtaiHostAddress")
+		).put(
+			"txtaiPassword",
+			ParamUtil.getString(httpServletRequest, "txtaiPassword")
+		).put(
+			"txtaiUsername",
+			ParamUtil.getString(httpServletRequest, "txtaiUsername")
 		).build();
 	}
 
@@ -150,8 +157,8 @@ public class SemanticSearchConfigurationFormRenderer
 			setAvailableLanguageDisplayNames(
 				_getAvailableLanguageDisplayNames(httpServletRequest));
 		semanticSearchCompanyConfigurationDisplayContext.
-			setAvailableSentenceTranformProviders(
-				_getAvailableSentenceTranformProviders(httpServletRequest));
+			setAvailableSentenceTransformers(
+				_getAvailableSentenceTransformers(httpServletRequest));
 		semanticSearchCompanyConfigurationDisplayContext.
 			setAvailableTextTruncationStrategies(
 				_getAvailableTextTruncationStrategies(httpServletRequest));
@@ -160,8 +167,6 @@ public class SemanticSearchConfigurationFormRenderer
 		semanticSearchCompanyConfigurationDisplayContext.
 			setEmbeddingVectorDimensions(
 				_semanticSearchConfiguration.embeddingVectorDimensions());
-		semanticSearchCompanyConfigurationDisplayContext.setEnableGPU(
-			_semanticSearchConfiguration.enableGPU());
 		semanticSearchCompanyConfigurationDisplayContext.
 			setHuggingFaceAccessToken(
 				_semanticSearchConfiguration.huggingFaceAccessToken());
@@ -176,14 +181,17 @@ public class SemanticSearchConfigurationFormRenderer
 		semanticSearchCompanyConfigurationDisplayContext.
 			setSentenceTransformerEnabled(
 				_semanticSearchConfiguration.sentenceTransformerEnabled());
-		semanticSearchCompanyConfigurationDisplayContext.
-			setSentenceTransformProvider(
-				_semanticSearchConfiguration.sentenceTransformProvider());
+		semanticSearchCompanyConfigurationDisplayContext.setSentenceTransformer(
+			_semanticSearchConfiguration.sentenceTransformer());
 		semanticSearchCompanyConfigurationDisplayContext.
 			setTextTruncationStrategy(
 				_semanticSearchConfiguration.textTruncationStrategy());
 		semanticSearchCompanyConfigurationDisplayContext.setTxtaiHostAddress(
 			_semanticSearchConfiguration.txtaiHostAddress());
+		semanticSearchCompanyConfigurationDisplayContext.setTxtaiPassword(
+			_semanticSearchConfiguration.txtaiPassword());
+		semanticSearchCompanyConfigurationDisplayContext.setTxtaiUserName(
+			_semanticSearchConfiguration.txtaiUsername());
 
 		httpServletRequest.setAttribute(
 			SemanticSearchCompanyConfigurationDisplayContext.class.getName(),
@@ -226,7 +234,7 @@ public class SemanticSearchConfigurationFormRenderer
 					httpServletRequest,
 					"model.resource.com.liferay.message.boards.model.MBMessage")
 			).put(
-				"model.resource.com.liferay.wiki.model.WikiPage",
+				"com.liferay.wiki.model.WikiPage",
 				_language.get(
 					httpServletRequest,
 					"model.resource.com.liferay.wiki.model.WikiPage")
@@ -264,14 +272,20 @@ public class SemanticSearchConfigurationFormRenderer
 		return _sortByValue(availableLanguageDisplayNames);
 	}
 
-	private Map<String, String> _getAvailableSentenceTranformProviders(
+	private Map<String, String> _getAvailableSentenceTransformers(
 		HttpServletRequest httpServletRequest) {
 
-		return LinkedHashMapBuilder.put(
-			"huggingFace", _language.get(httpServletRequest, "hugging-face")
-		).put(
-			"txtai", _language.get(httpServletRequest, "txtai")
-		).build();
+		Map<String, String> availableSentenceTranformProviders =
+			new TreeMap<>();
+
+		ListUtil.isNotEmptyForEach(
+			_sentenceEmbeddingRetriever.getAvailableSentenceTransformerNames(),
+			name -> availableSentenceTranformProviders.put(
+				name,
+				_language.get(
+					httpServletRequest, CamelCaseUtil.fromCamelCase(name))));
+
+		return availableSentenceTranformProviders;
 	}
 
 	private Map<String, String> _getAvailableTextTruncationStrategies(
@@ -313,6 +327,9 @@ public class SemanticSearchConfigurationFormRenderer
 	private Language _language;
 
 	private volatile SemanticSearchConfiguration _semanticSearchConfiguration;
+
+	@Reference
+	private SentenceEmbeddingRetriever _sentenceEmbeddingRetriever;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.search.experiences.web)",

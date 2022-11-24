@@ -38,7 +38,7 @@ import com.liferay.layout.constants.LayoutWebKeys;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
 import com.liferay.layout.helper.CollectionPaginationHelper;
-import com.liferay.layout.page.template.util.LayoutStructureUtil;
+import com.liferay.layout.provider.LayoutStructureProvider;
 import com.liferay.layout.responsive.ResponsiveLayoutStructureUtil;
 import com.liferay.layout.taglib.internal.display.context.RenderCollectionLayoutStructureItemDisplayContext;
 import com.liferay.layout.taglib.internal.display.context.RenderLayoutStructureDisplayContext;
@@ -189,7 +189,10 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		return LayoutStructureUtil.getLayoutStructure(
+		LayoutStructureProvider layoutStructureProvider =
+			ServletContextUtil.getLayoutStructureHelper();
+
+		return layoutStructureProvider.getLayoutStructure(
 			themeDisplay.getPlid(),
 			SegmentsExperienceUtil.getSegmentsExperienceId(httpServletRequest));
 	}

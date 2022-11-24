@@ -14,7 +14,7 @@
 
 package com.liferay.layout.taglib.servlet.taglib;
 
-import com.liferay.layout.page.template.util.LayoutStructureUtil;
+import com.liferay.layout.provider.LayoutStructureProvider;
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.utility.page.model.LayoutUtilityPageEntry;
@@ -25,12 +25,25 @@ import com.liferay.segments.service.SegmentsExperienceLocalServiceUtil;
 import com.liferay.taglib.util.IncludeTag;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 /**
  * @author Víctor Galán
  */
 public class RenderLayoutUtilityPageEntryTag extends IncludeTag {
+
+	@Override
+	public int doStartTag() throws JspException {
+		LayoutUtilityPageEntry layoutUtilityPageEntry =
+			_getLayoutUtilityPageEntry();
+
+		if (layoutUtilityPageEntry != null) {
+			return SKIP_BODY;
+		}
+
+		return EVAL_BODY_INCLUDE;
+	}
 
 	public int getType() {
 		return _type;
@@ -69,27 +82,34 @@ public class RenderLayoutUtilityPageEntryTag extends IncludeTag {
 	}
 
 	private LayoutStructure _getLayoutStructure() {
+		LayoutUtilityPageEntry layoutUtilityPageEntry =
+			_getLayoutUtilityPageEntry();
+
+		if (layoutUtilityPageEntry == null) {
+			return null;
+		}
+
+		LayoutStructureProvider layoutStructureProvider =
+			ServletContextUtil.getLayoutStructureHelper();
+
+		long defaultSegmentsExperienceId =
+			SegmentsExperienceLocalServiceUtil.fetchDefaultSegmentsExperienceId(
+				layoutUtilityPageEntry.getPlid());
+
+		return layoutStructureProvider.getLayoutStructure(
+			layoutUtilityPageEntry.getPlid(), defaultSegmentsExperienceId);
+	}
+
+	private LayoutUtilityPageEntry _getLayoutUtilityPageEntry() {
 		HttpServletRequest httpServletRequest = getRequest();
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		LayoutUtilityPageEntry layoutUtilityPageEntry =
-			LayoutUtilityPageEntryLocalServiceUtil.
-				fetchDefaultLayoutUtilityPageEntry(
-					themeDisplay.getScopeGroupId(), getType());
-
-		if (layoutUtilityPageEntry == null) {
-			return null;
-		}
-
-		long defaultSegmentsExperienceId =
-			SegmentsExperienceLocalServiceUtil.fetchDefaultSegmentsExperienceId(
-				layoutUtilityPageEntry.getPlid());
-
-		return LayoutStructureUtil.getLayoutStructure(
-			layoutUtilityPageEntry.getPlid(), defaultSegmentsExperienceId);
+		return LayoutUtilityPageEntryLocalServiceUtil.
+			fetchDefaultLayoutUtilityPageEntry(
+				themeDisplay.getScopeGroupId(), getType());
 	}
 
 	private static final String _PAGE =

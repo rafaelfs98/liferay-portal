@@ -12,10 +12,11 @@
 import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
+import {ClayTooltipProvider} from '@clayui/tooltip';
 import {fetch, sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
-import {SENTENCE_TRANSFORM_PROVIDER_TYPES} from './constants';
+import {SENTENCE_TRANSFORMER_TYPES} from './constants';
 
 /**
  * A button to test the connection for the semantic search settings page.
@@ -23,16 +24,16 @@ import {SENTENCE_TRANSFORM_PROVIDER_TYPES} from './constants';
  */
 function TestConfigurationButton({
 	assetEntryClassNames,
-	availableSentenceTransformProviders,
+	availableSentenceTransformers,
 	cacheTimeout,
 	embeddingVectorDimensions,
-	enableGPU,
+	errors,
 	huggingFaceAccessToken,
 	languageIds,
 	maxCharacterCount,
 	model,
 	modelTimeout,
-	sentenceTransformProvider,
+	sentenceTransformer,
 	textTruncationStrategy,
 	txtaiHostAddress,
 }) {
@@ -48,13 +49,12 @@ function TestConfigurationButton({
 		assetEntryClassNames,
 		cacheTimeout,
 		embeddingVectorDimensions,
-		enableGPU,
 		huggingFaceAccessToken,
 		languageIds,
 		maxCharacterCount,
 		model,
 		modelTimeout,
-		sentenceTransformProvider,
+		sentenceTransformer,
 		textTruncationStrategy,
 		txtaiHostAddress,
 	]);
@@ -65,23 +65,19 @@ function TestConfigurationButton({
 	 * sentence transform provider type.
 	 * @returns {object}
 	 */
-	const _getSentenceTransformProviderSettings = () => {
+	const _getSentenceTransformerSettings = () => {
 		if (
-			sentenceTransformProvider ===
-			SENTENCE_TRANSFORM_PROVIDER_TYPES.HUGGING_FACE
+			sentenceTransformer ===
+			SENTENCE_TRANSFORMER_TYPES.HUGGING_FACE_INFERENCE_API
 		) {
 			return {
-				enableGPU,
 				huggingFaceAccessToken,
 				model,
 				modelTimeout,
 			};
 		}
 
-		if (
-			sentenceTransformProvider ===
-			SENTENCE_TRANSFORM_PROVIDER_TYPES.TXTAI
-		) {
+		if (sentenceTransformer === SENTENCE_TRANSFORMER_TYPES.TXTAI) {
 			return {
 				txtaiHostAddress,
 			};
@@ -100,9 +96,9 @@ function TestConfigurationButton({
 			sentenceTransformerEnabled: true, // Always set as `true`. LPS-167506
 		};
 
-		const generalTransformProviderSettings = {
+		const generalTransformerSettings = {
 			embeddingVectorDimensions,
-			sentenceTransformProvider,
+			sentenceTransformer,
 		};
 
 		const indexingSettings = {
@@ -117,8 +113,8 @@ function TestConfigurationButton({
 			{
 				body: JSON.stringify({
 					...generalSettings,
-					...generalTransformProviderSettings,
-					..._getSentenceTransformProviderSettings(),
+					...generalTransformerSettings,
+					..._getSentenceTransformerSettings(),
 					...indexingSettings,
 				}),
 				headers: new Headers({
@@ -166,8 +162,8 @@ function TestConfigurationButton({
 									'unable-to-connect-to-x.-connection-failed-with-x'
 								),
 								[
-									availableSentenceTransformProviders[
-										sentenceTransformProvider
+									availableSentenceTransformers[
+										sentenceTransformer
 									],
 									JSON.stringify(errorMessage),
 								]
@@ -185,8 +181,8 @@ function TestConfigurationButton({
 									'unable-to-connect-to-x.-connection-failed-with-x'
 								),
 								[
-									availableSentenceTransformProviders[
-										sentenceTransformProvider
+									availableSentenceTransformers[
+										sentenceTransformer
 									],
 									responseData.errorMessage,
 								]
@@ -261,22 +257,49 @@ function TestConfigurationButton({
 			});
 	};
 
+	const isMissingRequiredFields = () => {
+		if (
+			sentenceTransformer ===
+			SENTENCE_TRANSFORMER_TYPES.HUGGING_FACE_INFERENCE_API
+		) {
+			return (
+				errors.huggingFaceAccessToken ||
+				errors.model ||
+				errors.modelTimeout
+			);
+		}
+
+		return false;
+	};
+
 	return (
 		<div className="test-configuration-button-root">
-			<ClayButton
-				aria-label={Liferay.Language.get('test-configuration')}
-				disabled={loading}
-				displayType="secondary"
-				onClick={_handleTestConfigurationButtonClick}
-			>
-				{loading && (
-					<span className="inline-item inline-item-before">
-						<ClayLoadingIndicator small />
-					</span>
-				)}
+			<ClayTooltipProvider>
+				<ClayButton
+					aria-disabled={loading || isMissingRequiredFields()}
+					aria-label={Liferay.Language.get('test-configuration')}
+					className={
+						loading || isMissingRequiredFields() ? 'disabled' : ''
+					}
+					displayType="secondary"
+					onClick={_handleTestConfigurationButtonClick}
+					{...(isMissingRequiredFields()
+						? {
+								title: Liferay.Language.get(
+									'required-fields-missing'
+								),
+						  }
+						: {})}
+				>
+					{loading && (
+						<span className="inline-item inline-item-before">
+							<ClayLoadingIndicator small />
+						</span>
+					)}
 
-				{Liferay.Language.get('test-configuration')}
-			</ClayButton>
+					{Liferay.Language.get('test-configuration')}
+				</ClayButton>
+			</ClayTooltipProvider>
 
 			{!!testResultsMessage.message && (
 				<ClayAlert

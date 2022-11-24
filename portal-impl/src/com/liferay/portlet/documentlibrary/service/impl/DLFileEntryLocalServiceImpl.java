@@ -128,6 +128,7 @@ import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.trash.helper.TrashHelper;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.EscapableLocalizableFunction;
@@ -670,7 +671,7 @@ public class DLFileEntryLocalServiceImpl
 		actionableDynamicQuery.setPerformActionMethod(
 			(DLFileEntry dlFileEntry) -> {
 				if (includeTrashedEntries ||
-					!dlFileEntry.isInTrashExplicitly()) {
+					!_trashHelper.isInTrashExplicitly(dlFileEntry)) {
 
 					repositoryEventTrigger.trigger(
 						RepositoryEventType.Delete.class, FileEntry.class,
@@ -976,7 +977,7 @@ public class DLFileEntryLocalServiceImpl
 
 				for (DLFileEntry dlFileEntry : dlFileEntries) {
 					if (includeTrashedEntries ||
-						!dlFileEntry.isInTrashExplicitly()) {
+						!_trashHelper.isInTrashExplicitly(dlFileEntry)) {
 
 						repositoryEventTrigger.trigger(
 							RepositoryEventType.Delete.class, FileEntry.class,
@@ -1044,8 +1045,8 @@ public class DLFileEntryLocalServiceImpl
 	public DLFileEntry fetchFileEntryByExternalReferenceCode(
 		long groupId, String externalReferenceCode) {
 
-		return dlFileEntryPersistence.fetchByG_ERC(
-			groupId, externalReferenceCode);
+		return dlFileEntryPersistence.fetchByERC_G(
+			externalReferenceCode, groupId);
 	}
 
 	@Override
@@ -1263,8 +1264,8 @@ public class DLFileEntryLocalServiceImpl
 			long groupId, String externalReferenceCode)
 		throws PortalException {
 
-		return dlFileEntryPersistence.findByG_ERC(
-			groupId, externalReferenceCode);
+		return dlFileEntryPersistence.findByERC_G(
+			externalReferenceCode, groupId);
 	}
 
 	@Override
@@ -3430,8 +3431,8 @@ public class DLFileEntryLocalServiceImpl
 			return;
 		}
 
-		DLFileEntry dlFileEntry = dlFileEntryPersistence.fetchByG_ERC(
-			groupId, externalReferenceCode);
+		DLFileEntry dlFileEntry = dlFileEntryPersistence.fetchByERC_G(
+			externalReferenceCode, groupId);
 
 		if (dlFileEntry != null) {
 			throw new DuplicateFileEntryExternalReferenceCodeException(
@@ -3529,6 +3530,10 @@ public class DLFileEntryLocalServiceImpl
 
 	private static final Pattern _fileVersionPattern = Pattern.compile(
 		"\\d+\\.\\d+");
+	private static volatile TrashHelper _trashHelper =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			TrashHelper.class, DLFileEntryLocalServiceImpl.class,
+			"_trashHelper", false);
 	private static volatile VersioningStrategy _versioningStrategy =
 		ServiceProxyFactory.newServiceTrackedInstance(
 			VersioningStrategy.class, DLFileEntryLocalServiceImpl.class,
