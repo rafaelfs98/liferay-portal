@@ -24,7 +24,9 @@ import {useFetch} from '../../../hooks/useFetch';
 import {FormModalOptions} from '../../../hooks/useFormModal';
 import i18n from '../../../i18n';
 import yupSchema, {yupResolver} from '../../../schema/yup';
+import {Liferay} from '../../../services/liferay';
 import {
+	MessageBoardMessage,
 	TestraySubTask,
 	TestraySubTaskIssue,
 	TestrayTask,
@@ -43,6 +45,7 @@ type SubTaskCompleteModalProps = {
 };
 
 type OutletContext = {
+	mbMessage: MessageBoardMessage;
 	mergedSubtaskNames: string;
 	mutateSubtask: KeyedMutator<any>;
 	testraySubtask: TestraySubTask;
@@ -54,7 +57,9 @@ const SubtaskCompleteModal: React.FC<SubTaskCompleteModalProps> = ({
 	mutate,
 	subtask,
 }) => {
-	const {mutateSubtask, testraySubtask} = useOutletContext<OutletContext>();
+	const {mbMessage, mutateSubtask, testraySubtask} = useOutletContext<
+		OutletContext
+	>();
 
 	const subTaskId = testraySubtask ? testraySubtask.id : subtask.id;
 
@@ -77,18 +82,29 @@ const SubtaskCompleteModal: React.FC<SubTaskCompleteModalProps> = ({
 		handleSubmit,
 		register,
 	} = useForm<SubtaskForm>({
-		defaultValues: {dueStatus: CaseResultStatuses.FAILED, issues},
+		defaultValues: {
+			comment: mbMessage?.articleBody,
+			dueStatus: CaseResultStatuses.FAILED,
+			issues,
+		},
 		resolver: yupResolver(yupSchema.subtask),
 	});
 
-	const _onSubmit = ({dueStatus, issues = ''}: SubtaskForm) => {
+	const _onSubmit = ({comment, dueStatus, issues = ''}: SubtaskForm) => {
 		const _issues = issues
 			.split(',')
 			.map((name) => name.trim())
 			.filter(Boolean);
 
+		const commentSubtask = {
+			comment,
+			mbMessageId: testraySubtask.mbMessageId,
+			mbThreadId: testraySubtask.mbThreadId,
+			userId: Number(Liferay.ThemeDisplay.getUserId()),
+		};
+
 		testraySubTaskImpl
-			.complete(subTaskId, dueStatus as string, _issues)
+			.complete(dueStatus as string, _issues, commentSubtask, subTaskId)
 			.then(mutateSubtask || mutate)
 			.then(mutateSubtaskIssues)
 			.then(() => onSave())
