@@ -48,8 +48,7 @@ type OutletContext = {
 const getAttachments = (caseResult: TestrayCaseResult): TestrayAttachment[] => {
 	try {
 		return JSON.parse(caseResult.attachments);
-	}
-	catch (error) {
+	} catch (error) {
 		return [];
 	}
 };
@@ -272,12 +271,12 @@ const CaseResult = () => {
 												<Avatar
 													displayName
 													name={`${
-														mbMessage.creator.name
+														mbMessage.creator?.name
 													} · ${getTimeFromNow(
 														mbMessage.dateCreated
 													)}`}
 													url={
-														mbMessage.creator.image
+														mbMessage.creator?.image
 													}
 												/>
 											</small>
