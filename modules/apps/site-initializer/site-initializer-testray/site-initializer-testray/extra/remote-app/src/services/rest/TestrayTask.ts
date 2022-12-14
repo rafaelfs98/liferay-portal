@@ -20,7 +20,7 @@ import {TaskStatuses} from '../../util/statuses';
 import Rest from './Rest';
 import {testrayTaskCaseTypesImpl} from './TestrayTaskCaseTypes';
 import {testrayTaskUsersImpl} from './TestrayTaskUsers';
-import {APIResponse, TestrayTask, TestrayTaskUser} from './types';
+import {APIResponse, TestrayTask} from './types';
 
 type TaskForm = typeof yupSchema.task.__outputType & {projectId: number};
 
@@ -65,57 +65,27 @@ class TestrayTaskImpl extends Rest<TaskForm, TestrayTask, NestedObjectOptions> {
 		});
 	}
 
-	private async assignUsers(taskId: number, userIds: number[]) {
-		let response = await testrayTaskUsersImpl.getAll(
-			searchUtil.eq('taskId', taskId)
-		);
-
-		response = testrayTaskUsersImpl.transformDataFromList(
-			response as APIResponse<TestrayTaskUser>
-		);
-
-		const currentTaskUserIds = (userIds || []) as number[];
-
-		const taskUsers = response.items;
-
-		const taskUserIds = taskUsers.map(({user}) => user?.id as number);
-
-		const userIdsToAdd = currentTaskUserIds.filter(
-			(currentTaskUserId) => !taskUserIds.includes(currentTaskUserId)
-		);
-
-		const userIdsToRemove = taskUsers.filter(
-			({user}) => !currentTaskUserIds.includes(user?.id as number)
-		);
-
-		if (userIdsToRemove.length) {
-			await testrayTaskUsersImpl.removeBatch(
-				userIdsToRemove.map(({id}) => id)
-			);
-		}
-
-		if (userIdsToAdd.length) {
-			await testrayTaskUsersImpl.createBatch(
-				userIdsToAdd.map((userId) => ({
-					name: `${taskId}-${userId}`,
-					taskId,
-					userId,
-				}))
-			);
-		}
-	}
-
 	public async assignTo(task: TestrayTask, userIds: number[]) {
-		await this.update(task.id, {
+		const response = await this.update(task.id, {
 			dueStatus: TaskStatuses.IN_ANALYSIS,
 			name: task.name as string,
 		});
-		await this.assignUsers(task.id, userIds);
+
+		await testrayTaskUsersImpl.assign(task.id, userIds);
+
+		return response;
 	}
 
 	public async abandon(task: TestrayTask) {
-		return this.update(task.id, {
+		return await this.update(task.id, {
 			dueStatus: TaskStatuses.ABANDONED,
+			name: task.name,
+		});
+	}
+
+	public async complete(task: TestrayTask) {
+		return await this.update(task.id, {
+			dueStatus: TaskStatuses.COMPLETE,
 			name: task.name,
 		});
 	}
@@ -183,7 +153,7 @@ class TestrayTaskImpl extends Rest<TaskForm, TestrayTask, NestedObjectOptions> {
 		const task = await super.update(id, data);
 
 		if (data.dueStatus === TaskStatuses.IN_ANALYSIS) {
-			await this.assignUsers(id, data.userIds as number[]);
+			await testrayTaskUsersImpl.assign(id, data.userIds as number[]);
 		}
 
 		return task;
