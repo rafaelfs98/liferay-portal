@@ -239,7 +239,7 @@ public class PredicateExpressionVisitorImpl
 	}
 
 	@Override
-	public Object visitMethodExpression(
+	public Predicate visitMethodExpression(
 		List<Object> expressions, MethodExpression.Type type) {
 
 		if (type == MethodExpression.Type.CONTAINS) {
@@ -250,7 +250,19 @@ public class PredicateExpressionVisitorImpl
 						"type ", type, " and ", expressions.size(), "params"));
 			}
 
-			return _contains(expressions.get(0), expressions.get(1));
+			String left = (String)expressions.get(0);
+			Object fieldValue = expressions.get(1);
+
+			Predicate predicate = _getPredicateForRelationships(
+				left,
+				(objectFieldName, relatedObjectDefinitionId) -> _contains(
+					objectFieldName, fieldValue, relatedObjectDefinitionId));
+
+			if (predicate != null) {
+				return predicate;
+			}
+
+			return _contains(left, fieldValue, _objectDefinitionId);
 		}
 
 		if (type == MethodExpression.Type.STARTS_WITH) {
@@ -316,12 +328,14 @@ public class PredicateExpressionVisitorImpl
 			objectRelatedModelsPredicateProviderRegistry;
 	}
 
-	private Predicate _contains(Object fieldName, Object fieldValue) {
-		Column<?, Object> column = _getColumn(fieldName, _objectDefinitionId);
+	private Predicate _contains(
+		Object fieldName, Object fieldValue, long objectDefinitionId) {
+
+		Column<?, Object> column = _getColumn(fieldName, objectDefinitionId);
 
 		return column.like(
 			StringPool.PERCENT +
-				_getValue(fieldName, _objectDefinitionId, fieldValue) +
+				_getValue(fieldName, objectDefinitionId, fieldValue) +
 					StringPool.PERCENT);
 	}
 
@@ -514,7 +528,7 @@ public class PredicateExpressionVisitorImpl
 					objectField.getBusinessType(),
 					ObjectFieldConstants.BUSINESS_TYPE_MULTISELECT_PICKLIST)) {
 
-				predicate = _contains(left, right);
+				predicate = _contains(left, right, _objectDefinitionId);
 			}
 		}
 
