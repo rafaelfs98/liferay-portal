@@ -96,25 +96,24 @@ public class PredicateExpressionVisitorImpl
 	public Predicate visitBinaryExpressionOperation(
 		BinaryExpression.Operation operation, Object left, Object right) {
 
-		Predicate predicate = _getPredicateForRelationships(
-			left,
-			(objectFieldName, relatedObjectDefinitionId) ->
-				_getPredicateOptional(
-					objectFieldName, relatedObjectDefinitionId, operation, right
-				).orElse(
-					null
-				));
-
-		if (predicate != null) {
-			return predicate;
-		}
-
-		return _getPredicateOptional(
-			left, _objectDefinitionId, operation, right
-		).orElseThrow(
-			() -> new UnsupportedOperationException(
-				"Unsupported method visitBinaryExpressionOperation with " +
-					"operation " + operation)
+		return Optional.ofNullable(
+			_getPredicateForRelationships(
+				left,
+				(objectFieldName, relatedObjectDefinitionId) ->
+					_getPredicateOptional(
+						objectFieldName, relatedObjectDefinitionId, operation,
+						right
+					).orElse(
+						null
+					))
+		).orElseGet(
+			() -> _getPredicateOptional(
+				left, _objectDefinitionId, operation, right
+			).orElseThrow(
+				() -> new UnsupportedOperationException(
+					"Unsupported method visitBinaryExpressionOperation with " +
+						"operation " + operation)
+			)
 		);
 	}
 
@@ -169,16 +168,15 @@ public class PredicateExpressionVisitorImpl
 		throws ExpressionVisitException {
 
 		if (Objects.equals(ListExpression.Operation.IN, operation)) {
-			Predicate predicate = _getPredicateForRelationships(
-				left,
-				(objectFieldName, relatedObjectDefinitionId) -> _getINPredicate(
-					objectFieldName, relatedObjectDefinitionId, rights));
-
-			if (predicate != null) {
-				return predicate;
-			}
-
-			return _getINPredicate(left, _objectDefinitionId, rights);
+			return Optional.ofNullable(
+				_getPredicateForRelationships(
+					left,
+					(objectFieldName, relatedObjectDefinitionId) ->
+						_getINPredicate(
+							objectFieldName, relatedObjectDefinitionId, rights))
+			).orElseGet(
+				() -> _getINPredicate(left, _objectDefinitionId, rights)
+			);
 		}
 
 		throw new UnsupportedOperationException(
@@ -253,16 +251,14 @@ public class PredicateExpressionVisitorImpl
 			String left = (String)expressions.get(0);
 			Object fieldValue = expressions.get(1);
 
-			Predicate predicate = _getPredicateForRelationships(
-				left,
-				(objectFieldName, relatedObjectDefinitionId) -> _contains(
-					objectFieldName, fieldValue, relatedObjectDefinitionId));
-
-			if (predicate != null) {
-				return predicate;
-			}
-
-			return _contains(left, fieldValue, _objectDefinitionId);
+			return Optional.ofNullable(
+				_getPredicateForRelationships(
+					left,
+					(objectFieldName, relatedObjectDefinitionId) -> _contains(
+						objectFieldName, fieldValue, relatedObjectDefinitionId))
+			).orElseGet(
+				() -> _contains(left, fieldValue, _objectDefinitionId)
+			);
 		}
 
 		if (type == MethodExpression.Type.STARTS_WITH) {
