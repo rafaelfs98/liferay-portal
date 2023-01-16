@@ -240,51 +240,44 @@ public class PredicateExpressionVisitorImpl
 	public Predicate visitMethodExpression(
 		List<Object> expressions, MethodExpression.Type type) {
 
-		if (type == MethodExpression.Type.CONTAINS) {
-			if (expressions.size() != 2) {
-				throw new UnsupportedOperationException(
-					StringBundler.concat(
-						"Unsupported method visitMethodExpression with method ",
-						"type ", type, " and ", expressions.size(), "params"));
-			}
-
+		if (expressions.size() == 2) {
 			String left = (String)expressions.get(0);
 			Object fieldValue = expressions.get(1);
 
-			return Optional.ofNullable(
-				_getPredicateForRelationships(
-					left,
-					(objectFieldName, relatedObjectDefinitionId) -> _contains(
-						objectFieldName, fieldValue, relatedObjectDefinitionId))
-			).orElseGet(
-				() -> _contains(left, fieldValue, _objectDefinitionId)
-			);
-		}
-
-		if (type == MethodExpression.Type.STARTS_WITH) {
-			if (expressions.size() != 2) {
-				throw new UnsupportedOperationException(
-					StringBundler.concat(
-						"Unsupported method visitMethodExpression with method",
-						"type ", type, " and ", expressions.size(), "params"));
+			if (type == MethodExpression.Type.CONTAINS) {
+				return Optional.ofNullable(
+					_getPredicateForRelationships(
+						left,
+						(objectFieldName, relatedObjectDefinitionId) ->
+							_contains(
+								objectFieldName, fieldValue,
+								relatedObjectDefinitionId))
+				).orElseGet(
+					() -> _contains(left, fieldValue, _objectDefinitionId)
+				);
+			}
+			else if (type == MethodExpression.Type.STARTS_WITH) {
+				return Optional.ofNullable(
+					_getPredicateForRelationships(
+						left,
+						(objectFieldName, relatedObjectDefinitionId) ->
+							_startsWith(
+								objectFieldName, fieldValue,
+								relatedObjectDefinitionId))
+				).orElseGet(
+					() -> _startsWith(left, fieldValue, _objectDefinitionId)
+				);
 			}
 
-			String left = (String)expressions.get(0);
-			Object fieldValue = expressions.get(1);
-
-			return Optional.ofNullable(
-				_getPredicateForRelationships(
-					left,
-					(objectFieldName, relatedObjectDefinitionId) -> _startsWith(
-						objectFieldName, fieldValue, relatedObjectDefinitionId))
-			).orElseGet(
-				() -> _startsWith(left, fieldValue, _objectDefinitionId)
-			);
+			throw new UnsupportedOperationException(
+				"Unsupported method visitMethodExpression with method type " +
+					type);
 		}
 
 		throw new UnsupportedOperationException(
-			"Unsupported method visitMethodExpression with method type " +
-				type);
+			StringBundler.concat(
+				"Unsupported method visitMethodExpression with method type ",
+				type, " and ", expressions.size(), "params"));
 	}
 
 	@Override
