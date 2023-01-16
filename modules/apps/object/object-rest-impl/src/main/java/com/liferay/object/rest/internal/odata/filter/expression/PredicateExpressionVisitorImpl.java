@@ -269,7 +269,17 @@ public class PredicateExpressionVisitorImpl
 						"type ", type, " and ", expressions.size(), "params"));
 			}
 
-			return _startsWith(expressions.get(0), expressions.get(1));
+			String left = (String)expressions.get(0);
+			Object fieldValue = expressions.get(1);
+
+			return Optional.ofNullable(
+				_getPredicateForRelationships(
+					left,
+					(objectFieldName, relatedObjectDefinitionId) -> _startsWith(
+						objectFieldName, fieldValue, relatedObjectDefinitionId))
+			).orElseGet(
+				() -> _startsWith(left, fieldValue, _objectDefinitionId)
+			);
 		}
 
 		throw new UnsupportedOperationException(
@@ -620,11 +630,13 @@ public class PredicateExpressionVisitorImpl
 		return false;
 	}
 
-	private Predicate _startsWith(Object fieldName, Object fieldValue) {
-		Column<?, Object> column = _getColumn(fieldName, _objectDefinitionId);
+	private Predicate _startsWith(
+		Object fieldName, Object fieldValue, long objectDefinitionId) {
+
+		Column<?, Object> column = _getColumn(fieldName, objectDefinitionId);
 
 		return column.like(
-			_getValue(fieldName, _objectDefinitionId, fieldValue) +
+			_getValue(fieldName, objectDefinitionId, fieldValue) +
 				StringPool.PERCENT);
 	}
 
