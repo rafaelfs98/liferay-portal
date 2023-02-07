@@ -17,6 +17,7 @@ import StatusBadge from '../../../components/StatusBadge';
 import {StatusBadgeType} from '../../../components/StatusBadge/StatusBadge';
 import {TableProps} from '../../../components/Table';
 import i18n from '../../../i18n';
+import {filters} from '../../../schema/filter';
 import {PickList, testrayCaseResultImpl} from '../../../services/rest';
 import dayjs from '../../../util/date';
 
@@ -40,6 +41,7 @@ const CaseResultHistory: React.FC<CaseResultHistoryProps> = ({
 			},
 		}}
 		managementToolbarProps={{
+			filterFields: filters.build.resultsHistory as any,
 			title: i18n.translate('test-history'),
 			visible: true,
 		}}

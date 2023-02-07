@@ -188,6 +188,64 @@ const filters = {
 				type: 'textarea',
 			},
 		],
+		resultsHistory: [
+			{
+				label: i18n.translate('product-version-name'),
+				name: 'productVersionName',
+				type: 'text',
+			},
+			{
+				label: i18n.translate('environment'),
+				name: 'runToCaseResult/name',
+				type: 'text',
+			},
+			{
+				label: i18n.translate('routines'),
+				name: 'routine',
+				type: 'text',
+			},
+			baseFilters.assignee,
+			{
+				label: i18n.translate('status'),
+				name: 'dueStatus',
+				options: [
+					'Blocked',
+					'Failed',
+					'In Progress',
+					'Passed',
+					'Test Fix',
+					'Untested',
+				],
+				type: 'checkbox',
+			},
+			{
+				label: i18n.translate('issues'),
+				name: 'issues',
+				type: 'textarea',
+			},
+			{
+				label: i18n.translate('errors'),
+				name: 'errors',
+				type: 'textarea',
+			},
+			{
+				label: i18n.translate('case-result-warning'),
+				name: 'warnings',
+				type: 'text',
+			},
+			{
+				label: i18n.translate('min-create-date'),
+				name: 'minCreateDate',
+				type: 'date',
+			},
+			{
+				label: i18n.translate('max-create-date'),
+				name: 'maxCreateDate',
+				type: 'date',
+			},
+
+			baseFilters.team,
+		],
 		runs: [baseFilters.priority, baseFilters.caseType, baseFilters.team],
 		teams: [
 			baseFilters.priority,
