@@ -43,6 +43,7 @@ export type InitialState = {
 	columns: {
 		[key: string]: boolean;
 	};
+	columnsFixed: string[];
 	filters: ListViewFilter;
 	id: string;
 	keywords: string;
@@ -56,6 +57,7 @@ export type InitialState = {
 const initialState: InitialState = {
 	checkAll: false,
 	columns: {},
+	columnsFixed: [],
 	filters: {
 		entries: [],
 		filter: {},
@@ -116,8 +118,7 @@ const reducer = (state: InitialState, action: AppActions) => {
 				selectedRows = state.checkAll ? [] : rowIds;
 
 				state.checkAll = !state.checkAll;
-			}
-			else {
+			} else {
 				const rowAlreadyInserted = state.selectedRows.includes(
 					rowIds as number
 				);
@@ -180,8 +181,7 @@ const reducer = (state: InitialState, action: AppActions) => {
 					storageName,
 					JSON.stringify(state.filters)
 				);
-			}
-			else {
+			} else {
 				localStorage.removeItem(storageName);
 			}
 

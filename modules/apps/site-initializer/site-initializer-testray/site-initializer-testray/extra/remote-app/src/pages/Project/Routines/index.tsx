@@ -37,6 +37,7 @@ const Routines = () => {
 						total: false,
 						untested: false,
 					},
+					columnsFixed: ['name', 'dateCreated'],
 				}}
 				managementToolbarProps={{
 					addButton: () => navigate('create'),
@@ -49,6 +50,7 @@ const Routines = () => {
 					columns: [
 						{
 							clickable: true,
+							defultColumn: true,
 							key: 'name',
 							size: 'md',
 							sorteable: true,

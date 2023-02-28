@@ -29,6 +29,7 @@ import ContextMenu from '../ContextMenu';
 
 type Column<T = any> = {
 	clickable?: boolean;
+	defultColumn?: boolean;
 	key: string;
 	render?: (
 		itemValue: any,

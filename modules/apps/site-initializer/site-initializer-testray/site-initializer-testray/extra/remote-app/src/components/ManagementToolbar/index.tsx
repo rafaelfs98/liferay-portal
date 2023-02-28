@@ -53,30 +53,33 @@ const ManagementToolbar: React.FC<ManagementToolbarProps> = ({
 	title,
 	totalItems,
 }) => {
-	const [{columns: contextColumns, filters}, dispatch] = useContext(
-		ListViewContext
-	);
+	const [
+		{columns: contextColumns, columnsFixed, filters},
+		dispatch,
+	] = useContext(ListViewContext);
 
 	const disabled = totalItems === 0;
 
 	const columns = [
 		{
-			items: tableProps.columns.map((column) => ({
-				checked: (contextColumns || {})[column.key] ?? true,
-				label: column.value,
-				onChange: (value: boolean) => {
-					dispatch({
-						payload: {
-							columns: {
-								...contextColumns,
-								[column.key]: value,
+			items: tableProps.columns
+				.filter((column) => !columnsFixed.includes(column.key))
+				.map((column) => ({
+					checked: (contextColumns || {})[column.key] ?? true,
+					label: column.value,
+					onChange: (value: boolean) => {
+						dispatch({
+							payload: {
+								columns: {
+									...contextColumns,
+									[column.key]: value,
+								},
 							},
-						},
-						type: ListViewTypes.SET_COLUMNS,
-					});
-				},
-				type: 'checkbox',
-			})),
+							type: ListViewTypes.SET_COLUMNS,
+						});
+					},
+					type: 'checkbox',
+				})),
 			label: i18n.translate('columns'),
 			type: 'group',
 		},
