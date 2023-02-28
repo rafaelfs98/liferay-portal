@@ -57,6 +57,10 @@ const TaskHeaderActions = () => {
 
 	const subTaskAllCompleted = testraySubtasks?.totalCount === 0;
 
+	const shouldUpdateTask =
+		testrayTask.dueStatus.key === TaskStatuses.COMPLETE &&
+		!subTaskAllCompleted;
+
 	const [modalType, setModalType] = useState<TestflowAssigUserType>(
 		'select-users'
 	);
@@ -94,6 +98,25 @@ const TaskHeaderActions = () => {
 			setUsersId(testrayTaskUser.map(({user}) => user?.id as number));
 		}
 	}, [setUsersId, testrayTaskUser]);
+
+	useEffect(() => {
+		if (shouldUpdateTask) {
+			testrayTaskImpl.reanalyze(testrayTask).then(mutateTask);
+
+			testrayTaskUsersImpl
+				.assign(
+					testrayTask.id,
+					Number(Liferay.ThemeDisplay.getUserId())
+				)
+				.then(revalidateTaskUser);
+		}
+	}, [
+		mutateTask,
+		revalidateTaskUser,
+		shouldUpdateTask,
+		testrayTask,
+		testrayTask.id,
+	]);
 
 	return (
 		<>
