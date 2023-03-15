@@ -17,6 +17,7 @@ import ClayForm from '@clayui/form';
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {useOutletContext, useParams} from 'react-router-dom';
+import {BuildStatuses} from '~/util/statuses';
 
 import Form from '../../../../../components/Form';
 import Container from '../../../../../components/Layout/Container';
@@ -159,6 +160,7 @@ const BuildForm = () => {
 
 	if (buildTemplate) {
 		setValue('template', true);
+		setValue('dueStatus', BuildStatuses.ACTIVE);
 	}
 
 	const _onSubmit = async (data: BuildFormType) => {

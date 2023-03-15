@@ -67,6 +67,7 @@ const buildStructure = {
 	active: yup.boolean(),
 	caseIds: yup.array().of(yup.number()),
 	description: yup.string(),
+	dueStatus: yup.string(),
 	factorStacks: yup.mixed(),
 	gitHash: yup.string(),
 	id: yup.string(),

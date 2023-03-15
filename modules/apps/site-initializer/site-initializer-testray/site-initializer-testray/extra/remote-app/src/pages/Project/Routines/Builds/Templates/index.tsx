@@ -13,6 +13,7 @@
  */
 
 import {useNavigate, useParams} from 'react-router-dom';
+import {PickList} from '~/services/rest';
 
 import Container from '../../../../../components/Layout/Container';
 import ListViewRest from '../../../../../components/ListView';
@@ -36,7 +37,9 @@ const BuildTemplates = () => {
 		.and()
 		.eq('template', true)
 		.and()
-		.eq('dueStatus', BuildStatuses.ACTIVE)
+
+		// .eq('dueStatus', BuildStatuses.ACTIVE)
+
 		.build();
 
 	useHeader({
@@ -58,9 +61,8 @@ const BuildTemplates = () => {
 					actions,
 					columns: [
 						{
-							key: 'active',
-							render: (active) =>
-								i18n.translate(active ? 'active' : 'deactive'),
+							key: 'dueStatus',
+							render: (dueStatus: PickList) => dueStatus?.name,
 							sorteable: true,
 							value: i18n.translate('status'),
 						},

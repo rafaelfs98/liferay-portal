@@ -38,6 +38,7 @@ class TestrayBuildImpl extends Rest<Build, TestrayBuild> {
 			adapter: ({
 				active,
 				description,
+				dueStatus,
 				gitHash,
 				name,
 				productVersionId: r_productVersionToBuilds_c_productVersionId,
@@ -49,7 +50,7 @@ class TestrayBuildImpl extends Rest<Build, TestrayBuild> {
 			}) => ({
 				active,
 				description,
-				dueStatus: BuildStatuses.ACTIVE,
+				dueStatus,
 				gitHash,
 				name,
 				promoted,
