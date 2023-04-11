@@ -14,12 +14,18 @@
 
 import React, {useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {useFetch} from '~/hooks/useFetch';
 
 import useFormActions from '../../../hooks/useFormActions';
 import useModalContext from '../../../hooks/useModalContext';
 import useMutate from '../../../hooks/useMutate';
 import i18n from '../../../i18n';
-import {TestrayRoutine, deleteResource} from '../../../services/rest';
+import {
+	APIResponse,
+	TestrayFactor,
+	TestrayRoutine,
+	deleteResource,
+} from '../../../services/rest';
 import {Action, ActionsHookParameter} from '../../../types';
 import EnvironmentFactorsModal from '../../Standalone/EnvironmentFactors/EnviromentFactorsModal';
 
@@ -28,6 +34,18 @@ const useRoutineActions = ({isHeaderActions}: ActionsHookParameter = {}) => {
 	const navigate = useNavigate();
 	const {removeItemFromList} = useMutate();
 	const {onOpenModal, state} = useModalContext();
+
+	const {data: dataTestrayFactor} = useFetch<APIResponse<TestrayFactor>>(
+		'/factors',
+		{
+			params: {
+				fields: 'actions',
+				pageSize: 100,
+			},
+		}
+	);
+
+	console.log(dataTestrayFactor?.actions.create);
 
 	const actionsRef = useRef([
 		{
@@ -60,6 +78,7 @@ const useRoutineActions = ({isHeaderActions}: ActionsHookParameter = {}) => {
 
 					title: i18n.translate('select-default-environment-factors'),
 				}),
+			hidden: !dataTestrayFactor?.actions.create,
 			icon: 'display',
 			name: i18n.translate('select-default-environment-factors'),
 		},
