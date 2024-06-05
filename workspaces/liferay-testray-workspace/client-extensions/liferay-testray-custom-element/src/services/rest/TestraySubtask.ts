@@ -52,7 +52,7 @@ class TestraySubtaskImpl extends Rest<SubtaskForm, TestraySubtask> {
 				score,
 			}),
 			nestedFields: 'tasks,users,subtask,subtaskToCaseResults',
-			nestedFieldsDepth: 2,
+			nestedFieldsDepth: 3,
 			transformData: (subtask) => ({
 				...subtask,
 				caseResultIssues:
@@ -83,11 +83,10 @@ class TestraySubtaskImpl extends Rest<SubtaskForm, TestraySubtask> {
 	}
 
 	private async getCaseResultsFromSubtask(subtaskId: number) {
-		const subtaskCaseResultResponse = await testraySubtaskCaseResultImpl.getAll(
-			{
+		const subtaskCaseResultResponse =
+			await testraySubtaskCaseResultImpl.getAll({
 				filter: SearchBuilder.eq('subtaskId', subtaskId),
-			}
-		);
+			});
 
 		if (!subtaskCaseResultResponse) {
 			return [];
@@ -140,8 +139,7 @@ class TestraySubtaskImpl extends Rest<SubtaskForm, TestraySubtask> {
 			);
 
 			return {mbMessage, mbThreadId};
-		}
-		catch {
+		} catch {
 			return {};
 		}
 	}
@@ -246,9 +244,9 @@ class TestraySubtaskImpl extends Rest<SubtaskForm, TestraySubtask> {
 			this.getOne(subtaskId),
 		]);
 
-		const [{number: subtaskIndex}] = (subtaskResponse as APIResponse<
-			TestraySubtask
-		>)?.items || [{number: 1}];
+		const [{number: subtaskIndex}] = (
+			subtaskResponse as APIResponse<TestraySubtask>
+		)?.items || [{number: 1}];
 
 		const [selectedSubtask] = selectedSubtaskCaseResults.map(
 			({subtask}) => subtask as TestraySubtask
