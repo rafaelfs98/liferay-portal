@@ -18,6 +18,7 @@ const headlessDeliveryAPIs = [
 
 const testrayRestAPIs = [
 	'testray-build-autofill',
+	'testray-case-result',
 	'testray-run-comparisons',
 	'testray-status-metrics',
 	'testray-testflow',
@@ -78,8 +79,7 @@ const safeLiferaySessionExtend = () => {
 			Liferay.Session.reset();
 
 			sessionStorage.setItem('lastTimestamp', String(currentTimestamp));
-		}
-		catch (error) {
+		} catch (error) {
 			error;
 		}
 	}
