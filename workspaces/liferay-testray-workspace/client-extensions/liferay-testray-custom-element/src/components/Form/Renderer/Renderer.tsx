@@ -231,13 +231,12 @@ const Renderer: React.FC<RendererProps> = ({
 									<Form.Checkbox
 										checked={
 											Array.isArray(form[name]) &&
-											form[
-												name
-											].some((option: Options | string) =>
-												typeof option === 'string'
-													? option === optionValue
-													: option.value ===
-													  optionValue
+											form[name].some(
+												(option: Options | string) =>
+													typeof option === 'string'
+														? option === optionValue
+														: option.value ===
+														  optionValue
 											)
 										}
 										disabled={disabled}

@@ -78,7 +78,9 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 						},
 						{
 							title: i18n.translate('execution-date'),
-							value: dayjs(testrayBuild.dueDate).format('lll'),
+							value: dayjs('2024-05-02T02:08:34.000Z').format(
+								'lll'
+							),
 						},
 						{
 							title: i18n.translate('created-by'),

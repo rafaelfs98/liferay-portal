@@ -43,34 +43,20 @@ const Build = () => {
 			<ListView
 				initialContext={{
 					columns: {environment: false},
-					pageSize: 50,
-					sort: [
-						{
-							direction: 'ASC',
-							key: 'dueStatus',
-						},
-						{
-							direction: 'ASC',
-							key: 'errors',
-						},
-					],
+					pageSize: 200,
 				}}
 				managementToolbarProps={{
 					applyFilters: true,
 					filterSchema: 'buildResults',
 					title: i18n.translate('tests'),
 				}}
-				resource={testrayCaseResultImpl.resource}
+				resource={`/testray-case-result/by-testray-buildId/${buildId}`}
 				tableProps={{
 					actions,
 					columns: [
 						{
 							clickable: true,
-							key: 'caseType',
-							render: (
-								_,
-								{case: testrayCase}: TestrayCaseResult
-							) => testrayCase?.caseType?.name,
+							key: 'testrayCaseTypeName',
 							value: i18n.translate('case-type'),
 						},
 						{
@@ -84,60 +70,44 @@ const Build = () => {
 						},
 						{
 							clickable: true,
-							key: 'team',
-							render: (_, testrayCaseResult: TestrayCaseResult) =>
-								testrayCaseResult.component?.team?.name,
+							key: 'testrayTeamName',
 							value: i18n.translate('team'),
 						},
 						{
 							clickable: true,
-							key: 'component',
-							render: (_, testrayCaseResult: TestrayCaseResult) =>
-								testrayCaseResult.component?.name,
+							key: 'testrayComponentName',
 							value: i18n.translate('component'),
 						},
 						{
-							key: 'name',
-							render: (
-								_,
-								{case: testrayCase}: TestrayCaseResult
-							) => testrayCase?.name,
+							key: 'testrayCaseName',
 							selectable: true,
 							size: 'xl',
 							value: i18n.translate('case'),
 						},
 						{
 							clickable: true,
-							key: 'run',
-							render: (_, caseResult: TestrayCaseResult) =>
-								caseResult.run?.number
-									?.toString()
-									.padStart(2, '0'),
+							key: 'testrayRunNumber',
+							render: (testrayRunNumber) =>
+								testrayRunNumber?.toString().padStart(2, '0'),
 							value: i18n.translate('run'),
 						},
 						{
 							clickable: true,
-							key: 'environment',
-							render: (_, item: TestrayCaseResult) =>
-								item?.run?.name,
+							key: 'testrayRunName',
 							value: i18n.translate('environment'),
 							width: '250',
 						},
 						{
-							key: 'user',
-							render: (
-								_: any,
-								caseResult: TestrayCaseResult,
-								mutate
-							) => {
-								if (caseResult?.user) {
+							key: 'testrayUserName',
+							render: (testrayUserName, mutate) => {
+								if (testrayUserName) {
 									return (
 										<Avatar
 											className="text-capitalize"
 											displayName
-											name={caseResult.user.name}
+											name={testrayUserName}
 											size="sm"
-											url={caseResult.user.image}
+											url={''}
 										/>
 									);
 								}
@@ -146,7 +116,7 @@ const Build = () => {
 									<AssignToMe
 										onClick={() =>
 											testrayCaseResultImpl
-												.assignToMe(caseResult)
+												.assignToMe(testrayUserName)
 												.then(() => {
 													updateItemFromList(
 														mutate,
@@ -169,12 +139,12 @@ const Build = () => {
 						},
 						{
 							clickable: true,
-							key: 'dueStatus',
-							render: (dueStatus: PickList) => (
+							key: 'status',
+							render: (dueStatus) => (
 								<StatusBadge
-									type={dueStatus.key as StatusBadgeType}
+									type={dueStatus as StatusBadgeType}
 								>
-									{dueStatus.name}
+									{dueStatus}
 								</StatusBadge>
 							),
 							value: i18n.translate('status'),
@@ -190,7 +160,7 @@ const Build = () => {
 							value: i18n.translate('issues'),
 						},
 						{
-							key: 'errors',
+							key: 'error',
 							render: (errors: string) =>
 								errors && (
 									<Code title={errors as string}>
@@ -208,14 +178,9 @@ const Build = () => {
 							value: i18n.translate('comment'),
 						},
 					],
-					navigateTo: ({id}) => `case-result/${id}`,
+					navigateTo: ({testrayCaseResultId}) =>
+						`case-result/${testrayCaseResultId}`,
 					rowWrap: true,
-				}}
-				transformData={(response) =>
-					testrayCaseResultImpl.transformDataFromList(response)
-				}
-				variables={{
-					filter,
 				}}
 			/>
 		</Container>

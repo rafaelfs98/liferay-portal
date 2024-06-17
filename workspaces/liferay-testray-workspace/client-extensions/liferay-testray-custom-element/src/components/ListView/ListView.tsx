@@ -177,7 +177,7 @@ const ListView: React.FC<ListViewProps> = ({
 			...filterVariables.appliedFilter,
 		};
 
-		const filters: {[key: string]: string | undefined} = {};
+		const filters: {[key: string]: string | undefined | boolean} = {};
 
 		Object.entries(appliedFilters).forEach(([key, value]) => {
 			const matchingField = filterSchema.fields.find(
@@ -185,14 +185,20 @@ const ListView: React.FC<ListViewProps> = ({
 			);
 
 			if (matchingField) {
-				filters[key] = SearchBuilder.createCustomFilter(
-					matchingField,
-					value
-				);
+				if (value.includes('No')) {
+					const newKey = `${key}BlankOnly`;
+					filters[newKey] = true;
+				} else {
+					filters[key] = SearchBuilder.createCustomFilter(
+						matchingField,
+						value
+					);
+				}
 				delete appliedFilters[key];
 			}
 		});
 
+		console.log('filters:', filters);
 		const filterVariablesCopy = {
 			...filterVariables,
 			appliedFilter: {...appliedFilters},
@@ -235,13 +241,16 @@ const ListView: React.FC<ListViewProps> = ({
 		]
 	);
 
-	const {data: response, error, isValidating, loading, mutate} = useFetch(
-		resource,
-		{
-			params: getURLSearchParams(),
-			transformData,
-		}
-	);
+	const {
+		data: response,
+		error,
+		isValidating,
+		loading,
+		mutate,
+	} = useFetch(resource, {
+		params: getURLSearchParams(),
+		transformData,
+	});
 
 	const {
 		actions = {},
@@ -258,11 +267,10 @@ const ListView: React.FC<ListViewProps> = ({
 		[results, title]
 	);
 
-	const itemsMemoized = useMemo(() => (results ? matrixData : items), [
-		items,
-		matrixData,
-		results,
-	]);
+	const itemsMemoized = useMemo(
+		() => (results ? matrixData : items),
+		[items, matrixData, results]
+	);
 
 	const isCompareRunsMatrix = title === 'Runs';
 

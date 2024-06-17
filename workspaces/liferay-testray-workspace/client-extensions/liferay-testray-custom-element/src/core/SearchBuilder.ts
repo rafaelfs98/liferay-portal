@@ -174,8 +174,7 @@ export default class SearchBuilder {
 				}
 
 				return SearchBuilder[customOperator](requestOperator, filters);
-			}
-			else if (typeof filter === 'object' && 'value' in filter) {
+			} else if (typeof filter === 'object' && 'value' in filter) {
 				return SearchBuilder[customOperator](
 					requestOperator,
 					filter.value
@@ -251,8 +250,7 @@ export default class SearchBuilder {
 				};
 
 				searchCondition = getOptionalSearchCondition();
-			}
-			else {
+			} else {
 				if (Array.isArray(value)) {
 					searchCondition = SearchBuilder.in(
 						key,
@@ -260,8 +258,7 @@ export default class SearchBuilder {
 							typeof _value === 'object' ? _value.value : _value
 						)
 					);
-				}
-				else {
+				} else {
 					searchCondition = SearchBuilder.eq(key, value);
 				}
 			}

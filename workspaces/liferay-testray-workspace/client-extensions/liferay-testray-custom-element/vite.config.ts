@@ -27,7 +27,7 @@ export default defineConfig({
 		},
 	},
 	server: {
-		port: 3000,
+		origin: 'http://localhost:5173',
 	},
 	test: {
 		coverage: {
