@@ -662,6 +662,22 @@ const filterSchema = {
 				operator: 'contains',
 				type: 'text',
 			},
+			{
+				label: i18n.translate('Flake'),
+				name: 'flake',
+				options: [
+					{
+						label: i18n.translate('true'),
+						value: true,
+					},
+					{
+						label: i18n.translate('false'),
+						value: false,
+					},
+				],
+				removeQuoteMark: true,
+				type: 'select',
+			},
 			overrides(baseFilters.team, {
 				name: 'componentToCases/r_teamToComponents_c_teamId',
 				type: 'multiselect',

@@ -1,0 +1,9 @@
+{
+    "private": true,
+    "workspaces": {
+        "packages": [
+            "client-extensions/liferay-testray-custom-element",
+            "client-extensions/liferay-testray-etc-jira"
+        ]
+    }
+}
