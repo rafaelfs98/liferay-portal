@@ -213,11 +213,11 @@ public class TestrayCaseResultResourceImpl
 			String issues, Boolean noComment, Boolean noError, Boolean noIssues,
 			String priority, String status, String testrayCaseName,
 			String testrayCaseTypeIds, String testrayComponentIds,
-			String testrayRunId, String testrayRunName, String testrayTeamIds,
-			String testrayUserId, Pagination pagination)
+			String testrayRunId, String testrayRunName, String testraySubtaskId,
+			String testrayTeamIds, String testrayUserId, Pagination pagination)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(49);
+		StringBundler sb = new StringBundler(50);
 
 		sb.append("select cr.c_caseResultId_, cr.comment_, cr.dueStatus_, ");
 		sb.append("cr.errors_, cr.issues_, ct.name_ as caseTypeName, c.name_ ");
@@ -314,6 +314,11 @@ public class TestrayCaseResultResourceImpl
 		if (Validator.isNotNull(testrayRunName)) {
 			sb.append("and r.name_ like ? ");
 			params.add("%" + testrayRunName + "%");
+		}
+
+		if (Validator.isNotNull(testraySubtaskId)) {
+			sb.append("and cr.r_subtaskToCaseResults_c_subtaskId = ? ");
+			params.add(testraySubtaskId);
 		}
 
 		if (Validator.isNotNull(testrayTeamIds)) {
