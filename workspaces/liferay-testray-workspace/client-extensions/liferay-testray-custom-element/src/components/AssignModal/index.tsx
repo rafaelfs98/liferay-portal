@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {withVisibleContent} from '~/hoc/withVisibleContent';
 import {FormModalOptions} from '../../hooks/useFormModal';
 import i18n from '../../i18n';
 import {UserListView} from '../../pages/Manage/User';
@@ -36,4 +37,4 @@ const CaseResultAssignModal: React.FC<AssignModalProps> = ({
 	</Modal>
 );
 
-export default CaseResultAssignModal;
+export default withVisibleContent(CaseResultAssignModal);

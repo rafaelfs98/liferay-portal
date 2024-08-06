@@ -185,7 +185,7 @@ const ListView: React.FC<ListViewProps> = ({
 			);
 
 			if (matchingField) {
-				if (value.includes('No')) {
+				if (value.includes(i18n.sub('no-x', matchingField.label))) {
 					const newKey = `no${key.charAt(0).toUpperCase() + key.slice(1)}`;
 
 					filters[newKey] = true;
